@@ -332,7 +332,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChVector<> loc;
     ChQuaternion<> rot;
 
-#if FALSE  // Use busing elements to connect the belt segments, otherwise use revolute joints
+#if TRUE  // Use busing elements to connect the belt segments, otherwise use revolute joints
     // Bushings are inherited from ChLoad, so they require a 'load container'
 
     auto my_loadcontainer = std::make_shared<ChLoadContainer>();
@@ -343,15 +343,15 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
 
     //Sample Stiffness and Damping matrix values for testing purposes
     for (unsigned int ii = 0; ii < 3; ii++) {
-        K_matrix(ii, ii) = 20000.0;
+        K_matrix(ii, ii) = 70000000.0;
         R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
     }
     for (unsigned int ii = 3; ii < 6; ii++) {
-        K_matrix(ii, ii) = 1000.0;
+        K_matrix(ii, ii) = 100000.0;
         R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
     }
-    K_matrix(4, 4) = 0;
-    R_matrix(4, 4) = 0;
+    K_matrix(4, 4) = 500;
+    R_matrix(4, 4) = 0.05 * K_matrix(4, 4);
 
     // Connect tread body to the first web segment.
     loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));

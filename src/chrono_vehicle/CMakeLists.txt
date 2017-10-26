@@ -495,6 +495,8 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
     tracked_vehicle/sprocket/ChSprocketCB.h
     tracked_vehicle/sprocket/ChSprocketCB.cpp
+    tracked_vehicle/sprocket/ChSprocketRigidANCFCB.h
+    tracked_vehicle/sprocket/ChSprocketRigidANCFCB.cpp
 
     tracked_vehicle/sprocket/SprocketSinglePin.h
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
@@ -523,7 +525,9 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeRigidCB.h
     tracked_vehicle/track_shoe/ChTrackShoeRigidCB.cpp
-
+    tracked_vehicle/track_shoe/ChTrackShoeRigidANCFCB.h
+    tracked_vehicle/track_shoe/ChTrackShoeRigidANCFCB.cpp
+	
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
@@ -538,7 +542,9 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyRigidCB.h
     tracked_vehicle/track_assembly/ChTrackAssemblyRigidCB.cpp
-
+    tracked_vehicle/track_assembly/ChTrackAssemblyRigidANCFCB.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyRigidANCFCB.cpp
+	
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h

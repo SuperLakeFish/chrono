@@ -18,6 +18,8 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono_mkl/ChSolverMKL.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
@@ -30,10 +32,20 @@
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidCB.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidANCFCB.h"
+
+
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+
 
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
+using namespace chrono::fea;
 
 using std::cout;
 using std::endl;
@@ -48,10 +60,10 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 double post_limit = 0.2;
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 1e-4;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;
+double render_step_size = 1.0 / 500;
 
 // Output (screenshot captures)
 bool img_output = false;
@@ -69,7 +81,7 @@ int main(int argc, char* argv[]) {
         rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        TrackShoeType type = TrackShoeType::RIGID_ANCF_CB;
 
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
@@ -88,10 +100,143 @@ int main(int argc, char* argv[]) {
                 track_assembly = assembly;
                 break;
             }
+            case TrackShoeType::RIGID_ANCF_CB: {
+                auto assembly = std::make_shared<M113_TrackAssemblyRigidANCFCB>(side);
+                track_assembly = assembly;
+                break;
+            }
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::SMC);
     }
+
+//-------------------------------------------------------------------
+#if FALSE
+//Problem Geometry
+    double web_angle = -30 * CH_C_DEG_TO_RAD;
+    double length = 24 * 25.4 / 1000;
+    double width = 12 * 25.4 / 1000;
+    double thickness = 1 * 25.4 / 1000;
+
+    int num_elements_length = 10;
+    int num_elements_width = 10;
+    int num_elements_thickness = 1;
+
+    int N_x = num_elements_length + 1;
+    int N_y = num_elements_width + 1;
+
+    double dx = length * std::cos(web_angle) / num_elements_length;
+    double dy = width / num_elements_width;
+    double dz = length * std::sin(web_angle) / num_elements_length;
+
+    // Number of elements in the z direction is considered as 1
+    int TotalNumElements = num_elements_length * num_elements_width;
+    int TotalNumNodes = N_x * N_y;
+
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    auto my_mesh = std::make_shared<ChMesh>();
+
+    // Create and add the nodes
+    for (int x_idx = 0; x_idx < N_x; x_idx++) {
+        for (int y_idx = 0; y_idx < N_y; y_idx++) {
+
+            // Node location
+            double loc_x = x_idx * dx;
+            double loc_y = y_idx * dy;
+            double loc_z = x_idx * dz;
+
+            // Node direction
+            double dir_x = std::cos(web_angle + CH_C_PI_2);
+            double dir_y = 0;
+            double dir_z = std::sin(web_angle + CH_C_PI_2);
+
+            // Create the node
+            auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+
+            node->SetMass(0);
+
+            // Add node to mesh
+            my_mesh->AddNode(node);
+        }
+    }
+
+    // Create an orthotropic material.
+    // All layers for all elements share the same material.
+    double rho = 1.1e3;
+    ChVector<> E(0.01e9, 0.01e9, 0.01e9);
+    ChVector<> nu(0.49, 0.49, 0.49);
+    //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
+    ChVector<> G = E / (2 * (1 + .49));
+    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+
+
+    // Create the elements
+    for (int x_idx = 0; x_idx < num_elements_length; x_idx++) {
+        for (int y_idx = 0; y_idx < num_elements_width; y_idx++) {
+            // Adjacent nodes
+            int node0 = y_idx + x_idx * N_y;
+            int node1 = y_idx + (x_idx + 1) * N_y;
+            int node2 = (y_idx + 1) + (x_idx + 1) * N_y;
+            int node3 = (y_idx + 1) + x_idx * N_y;
+
+            // Create the element and set its nodes.
+            auto element = std::make_shared<ChElementShellANCF>();
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+
+            // Set element dimensions
+            element->SetDimensions(std::sqrt(dx*dx + dz*dz), dy);
+
+            // Add a single layers with a fiber angle of 0 degrees.
+            element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+
+            // Set other element properties
+            element->SetAlphaDamp(0.05);    // Structural damping for this element
+            element->SetGravityOn(false);  // turn internal gravitational force calculation off
+
+                                           // Add element to mesh
+            my_mesh->AddElement(element);
+        }
+    }
+
+    // Add the mesh to the system
+    rig->GetSystem()->Add(my_mesh);
+
+    // -------------------------------------
+    // Options for visualization in irrlicht
+    // -------------------------------------
+
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetShrinkElements(true, 0.85);
+    mvisualizemesh->SetSmoothFaces(true);
+    my_mesh->AddAsset(mvisualizemesh);
+
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshref->SetWireframe(true);
+    mvisualizemeshref->SetDrawInUndeformedReference(true);
+    my_mesh->AddAsset(mvisualizemeshref);
+
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshC->SetSymbolsThickness(0.004);
+    my_mesh->AddAsset(mvisualizemeshC);
+
+    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshD->SetSymbolsScale(1);
+    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetZbufferHide(false);
+    my_mesh->AddAsset(mvisualizemeshD);
+//-------------------------------------------------------------------
+#endif
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
@@ -102,8 +247,28 @@ int main(int argc, char* argv[]) {
     rig->GetSystem()->SetMinBounceSpeed(2.0);
     rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
     rig->GetSystem()->SetSolverSharpnessParam(1.0);
+	rig->SetMaxTorque(6000);
 
-    rig->SetMaxTorque(6000);
+	// Mark completion of system construction
+	rig->GetSystem()->SetupInitial();
+
+	auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+	rig->GetSystem()->SetSolver(mkl_solver);
+	mkl_solver->SetSparsityPatternLock(false);
+	rig->GetSystem()->Update();
+
+	// HHT
+	rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(200);
+	mystepper->SetAbsTolerances(1e-03);
+	mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
+	mystepper->SetScaling(true);
+	mystepper->SetVerbose(true);
+	mystepper->SetStepControl(true);
+
+    
 
     ChVector<> rig_loc(0, 0, 2);
     ChQuaternion<> rig_rot(1, 0, 0, 0);
@@ -205,6 +370,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+		std::cout << "Step: " << step_number << "   Time: " << time << std::endl;
     }
 
     delete rig;

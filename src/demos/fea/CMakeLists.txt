@@ -32,12 +32,14 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr
-	demo_FEA_beams_extrude
+    demo_FEA_beams_extrude
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
     demo_FEA_ContactANCF
     demo_FEA_Brick9
+    demo_FEA_cb_track_web_test
+    demo_FEA_cb_track_web_test_ancfShell_8
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL

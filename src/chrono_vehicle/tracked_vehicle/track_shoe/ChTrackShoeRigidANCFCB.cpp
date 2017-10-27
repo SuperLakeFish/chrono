@@ -186,80 +186,78 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     //    AddWebContact(m_web_segments[is]);
     //}
 
-#if FALSE
-    if (GetIndex() == 0) {
-        m_web_mesh = std::make_shared<ChMesh>();
+#if TRUE
+    m_web_mesh = std::make_shared<ChMesh>();
 
-        int N_x = m_num_elements_length + 1;
-        int N_y = m_num_elements_width + 1;
+    int N_x = m_num_elements_length + 1;
+    int N_y = m_num_elements_width + 1;
 
-        double dx = GetWebLength() / m_num_elements_length;
-        double dy = GetBeltWidth() / m_num_elements_width;
-        double dz = GetWebThickness();
+    double dx = GetWebLength() / m_num_elements_length;
+    double dy = GetBeltWidth() / m_num_elements_width;
+    double dz = GetWebThickness();
 
-        // Create and add the nodes
-        for (int x_idx = 0; x_idx < N_x; x_idx++) {
-            for (int y_idx = 0; y_idx < N_y; y_idx++) {
+    // Create and add the nodes
+    for (int x_idx = 0; x_idx < N_x; x_idx++) {
+        for (int y_idx = 0; y_idx < N_y; y_idx++) {
 
-                // Node location
-                auto node_loc = seg_loc + x_idx*dx*xdir + y_idx*dy*ydir;
+            // Node location
+            auto node_loc = seg_loc + x_idx*dx*xdir + y_idx*dy*ydir;
 
-                // Node direction
-                auto node_dir = zdir;
+            // Node direction
+            auto node_dir = zdir;
 
-                // Create the node
-                auto node = std::make_shared<ChNodeFEAxyzD>(node_loc, node_dir);
+            // Create the node
+            auto node = std::make_shared<ChNodeFEAxyzD>(node_loc, node_dir);
 
-                node->SetMass(0);
+            node->SetMass(0);
 
-                // Add node to mesh
-                m_web_mesh->AddNode(node);
-            }
+            // Add node to mesh
+            m_web_mesh->AddNode(node);
         }
-
-        // Create an orthotropic material.
-        // All layers for all elements share the same material.
-        double rho = 1.1e3;
-        ChVector<> E(0.01e9, 0.01e9, 0.01e9);
-        ChVector<> nu(0.49, 0.49, 0.49);
-        //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-        ChVector<> G = E / (2 * (1 + .49));
-        auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
-
-        // Create the elements
-        for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
-            for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
-                // Adjacent nodes
-                int node0 = y_idx + x_idx * N_y;
-                int node1 = y_idx + (x_idx + 1) * N_y;
-                int node2 = (y_idx + 1) + (x_idx + 1) * N_y;
-                int node3 = (y_idx + 1) + x_idx * N_y;
-
-                // Create the element and set its nodes.
-                auto element = std::make_shared<ChElementShellANCF>();
-                element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node0)),
-                    std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node1)),
-                    std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node2)),
-                    std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node3)));
-
-                // Set element dimensions
-                element->SetDimensions(dx, dy);
-
-                // Add a single layers with a fiber angle of 0 degrees.
-                element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
-
-                // Set other element properties
-                element->SetAlphaDamp(0.05);    // Structural damping for this element
-                element->SetGravityOn(false);  // turn internal gravitational force calculation off
-
-                                               // Add element to mesh
-                m_web_mesh->AddElement(element);
-            }
-        }
-
-        // Add the mesh to the system
-        chassis->GetSystem()->Add(m_web_mesh);
     }
+
+    // Create an orthotropic material.
+    // All layers for all elements share the same material.
+    double rho = 1.1e3;
+    ChVector<> E(0.01e9, 0.01e9, 0.01e9);
+    ChVector<> nu(0.49, 0.49, 0.49);
+    //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
+    ChVector<> G = E / (2 * (1 + .49));
+    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+
+    // Create the elements
+    for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
+        for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+            // Adjacent nodes
+            int node0 = y_idx + x_idx * N_y;
+            int node1 = y_idx + (x_idx + 1) * N_y;
+            int node2 = (y_idx + 1) + (x_idx + 1) * N_y;
+            int node3 = (y_idx + 1) + x_idx * N_y;
+
+            // Create the element and set its nodes.
+            auto element = std::make_shared<ChElementShellANCF>();
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node0)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node1)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node2)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node3)));
+
+            // Set element dimensions
+            element->SetDimensions(dx, dy);
+
+            // Add a single layers with a fiber angle of 0 degrees.
+            element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+
+            // Set other element properties
+            element->SetAlphaDamp(0.05);    // Structural damping for this element
+            element->SetGravityOn(false);  // turn internal gravitational force calculation off
+
+                                            // Add element to mesh
+            m_web_mesh->AddElement(element);
+        }
+    }
+
+    // Add the mesh to the system
+    m_shoe->GetSystem()->Add(m_web_mesh);
 #endif
 
 #if FALSE
@@ -316,7 +314,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         // Create an orthotropic material.
         // All layers for all elements share the same material.
         double rho = 1.1e3;
-        ChVector<> E(0.01e9, 0.01e9, 0.01e9);
+        ChVector<> E(0.1e9, 0.1e9, 0.1e9);
         ChVector<> nu(0.49, 0.49, 0.49);
         //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
         ChVector<> G = E / (2 * (1 + .49));
@@ -390,7 +388,10 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         my_mesh->AddAsset(mvisualizemeshD);
         //-------------------------------------------------------------------
     }
+
 #endif
+
+    m_shoe->GetSystem()->SetupInitial();
 
 }
 
@@ -429,28 +430,28 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     double dy = GetBeltWidth() / m_num_elements_width;
     double dz = GetWebThickness();
 
-#if FALSE
+#if TRUE
     // Move the nodes on the mesh to the correct location
-    if (GetIndex() == 0) {
-        for (int x_idx = 0; x_idx < N_x; x_idx++) {
-            for (int y_idx = 0; y_idx < N_y; y_idx++) {
+    for (int x_idx = 0; x_idx < N_x; x_idx++) {
+        for (int y_idx = 0; y_idx < N_y; y_idx++) {
 
-                // Node location
-                auto node_loc = seg_loc + x_idx*dx*xdir + y_idx*dy*ydir;
+            // Node location
+            auto node_loc = seg_loc + x_idx*dx*xdir + y_idx*dy*ydir;
 
-                // Node direction
-                auto node_dir = zdir;
+            // Node direction
+            auto node_dir = zdir;
 
-                // Create the node
-                int node_idx = y_idx + x_idx * N_y;
-                auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
+            // Create the node
+            int node_idx = y_idx + x_idx * N_y;
+            auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetPos(node_loc);
-                node->SetD(node_dir);
-            }
+            node->SetPos(node_loc);
+            node->SetD(node_dir);
         }
     }
 #endif
+
+    m_shoe->GetSystem()->SetupInitial();
 }
 
 // -----------------------------------------------------------------------------
@@ -625,40 +626,41 @@ void ChTrackShoeRigidANCFCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     int N_x = m_num_elements_length + 1;
     int N_y = m_num_elements_width + 1;
 
+#if TRUE
+    // Change the gradient on the web boundary nodes that will connect to the current shoe body
+    // and then connect those web nodes to the show tread body
+    for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+        int node_idx = y_idx + 0 * N_y;
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-    //// Change the gradient on the web boundary nodes that will connect to the current shoe body
-    //// and then connect those web nodes to the show tread body
-    //for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
-    //    int node_idx = y_idx + 0 * N_y;
-    //    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
+        node->SetD(rot_cur_shoe.GetZaxis());
 
-    //    node->SetD(rot_cur_shoe.GetZaxis());
+        auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+        constraintxyz->Initialize(node, m_shoe);
+        system->Add(constraintxyz);
 
-    //    auto constraintxyz = std::make_shared<ChLinkPointFrame>();
-    //    constraintxyz->Initialize(node, m_shoe);
-    //    system->Add(constraintxyz);
+        auto constraintD = std::make_shared<ChLinkDirFrame>();
+        constraintD->Initialize(node, m_shoe);
+        system->Add(constraintD);
+    }
 
-    //    auto constraintD = std::make_shared<ChLinkDirFrame>();
-    //    constraintD->Initialize(node, m_shoe);
-    //    system->Add(constraintD);
-    //}
+    // Change the gradient on the boundary nodes that will connect to the second fixed body
+    // and then connect those nodes to the body
+    for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+        int node_idx = y_idx + m_num_elements_length * N_y;
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-    //// Change the gradient on the boundary nodes that will connect to the second fixed body
-    //// and then connect those nodes to the body
-    //for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
-    //    int node_idx = y_idx + m_num_elements_length * N_y;
-    //    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
+        node->SetD(rot_next_shoe.GetZaxis());
 
-    //    node->SetD(rot_next_shoe.GetZaxis());
+        auto constraintxyz = std::make_shared<ChLinkPointFrame>();
+        constraintxyz->Initialize(node, next->GetShoeBody());
+        system->Add(constraintxyz);
 
-    //    auto constraintxyz = std::make_shared<ChLinkPointFrame>();
-    //    constraintxyz->Initialize(node, next->GetShoeBody());
-    //    system->Add(constraintxyz);
-
-    //    auto constraintD = std::make_shared<ChLinkDirFrame>();
-    //    constraintD->Initialize(node, next->GetShoeBody());
-    //    system->Add(constraintD);
-    //}
+        auto constraintD = std::make_shared<ChLinkDirFrame>();
+        constraintD->Initialize(node, next->GetShoeBody());
+        system->Add(constraintD);
+    }
+#endif
 }
 
 

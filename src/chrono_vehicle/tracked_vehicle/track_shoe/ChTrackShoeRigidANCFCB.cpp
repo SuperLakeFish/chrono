@@ -194,7 +194,28 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     double dx = GetWebLength() / m_num_elements_length;
     double dy = GetBeltWidth() / m_num_elements_width;
-    double dz = GetWebThickness();
+
+    double dz_steel = 0.05*25.4 / 1000.0;
+    double dz_rubber = (GetWebThickness()- dz_steel)/2;
+
+    // Create an orthotropic material.
+    // All layers for all elements share the same material.
+    double rho_rubber = 1.1e3;
+    ChVector<> E_rubber(0.01e9, 0.01e9, 0.01e9);
+    ChVector<> nu_rubber(0.49, 0.49, 0.49);
+    //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
+    ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
+    auto mat_rubber = std::make_shared<ChMaterialShellANCF>(rho_rubber, E_rubber, nu_rubber, G_rubber);
+
+    // Create an orthotropic material.
+    // All layers for all elements share the same material.
+    double rho_steel = 7900.0;
+    ChVector<> E_steel(210e9, 210e9, 210e9);
+    ChVector<> nu_steel(0.3, 0.3, 0.3);
+    //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
+    ChVector<> G_steel = E_steel / (2 * (1 + .3));
+    auto mat_steel = std::make_shared<ChMaterialShellANCF>(rho_steel, E_steel, nu_steel, G_steel);
+
 
     // Create and add the nodes
     for (int x_idx = 0; x_idx < N_x; x_idx++) {
@@ -216,15 +237,6 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         }
     }
 
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho = 1.1e3;
-    ChVector<> E(0.01e9, 0.01e9, 0.01e9);
-    ChVector<> nu(0.49, 0.49, 0.49);
-    //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-    ChVector<> G = E / (2 * (1 + .49));
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
-
     // Create the elements
     for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
         for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
@@ -245,7 +257,9 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             element->SetDimensions(dx, dy);
 
             // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
+            element->AddLayer(dz_steel, 0 * CH_C_DEG_TO_RAD, mat_steel);
+            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
 
             // Set other element properties
             element->SetAlphaDamp(0.05);    // Structural damping for this element
@@ -391,7 +405,6 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 #endif
 
-    m_shoe->GetSystem()->SetupInitial();
 
 }
 
@@ -451,7 +464,6 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 #endif
 
-    m_shoe->GetSystem()->SetupInitial();
 }
 
 // -----------------------------------------------------------------------------

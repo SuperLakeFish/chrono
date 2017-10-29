@@ -60,7 +60,7 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 double post_limit = 0.2;
 
 // Simulation step size
-double step_size = 5e-5;
+double step_size = 1e-5;
 
 // Time interval between two render frames
 //double render_step_size = 1.0 / 500;
@@ -112,6 +112,12 @@ int main(int argc, char* argv[]) {
     }
 
 
+
+    ChVector<> rig_loc(0, 0, 2);
+    ChQuaternion<> rig_rot(1, 0, 0, 0);
+    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
+
+
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
     rig->GetSystem()->SetMaxItersSolverSpeed(200);
@@ -123,9 +129,6 @@ int main(int argc, char* argv[]) {
     rig->GetSystem()->SetSolverSharpnessParam(1.0);
 	rig->SetMaxTorque(6000);
 
-	// Mark completion of system construction
-	rig->GetSystem()->SetupInitial();
-
 	auto mkl_solver = std::make_shared<ChSolverMKL<>>();
 	rig->GetSystem()->SetSolver(mkl_solver);
 	mkl_solver->SetSparsityPatternLock(false);
@@ -136,17 +139,12 @@ int main(int argc, char* argv[]) {
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
 	mystepper->SetAlpha(-0.2);
 	mystepper->SetMaxiters(200);
-	mystepper->SetAbsTolerances(1e-03);
+	mystepper->SetAbsTolerances(1e-02);
 	mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
 	mystepper->SetScaling(true);
 	mystepper->SetVerbose(false);
 	mystepper->SetStepControl(true);
-
-    
-
-    ChVector<> rig_loc(0, 0, 2);
-    ChQuaternion<> rig_rot(1, 0, 0, 0);
-    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
+    mystepper->SetModifiedNewton(false);
 
     rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
@@ -166,8 +164,8 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
+    app.SetChaseCamera(ChVector<>(-2.0,0.0,0.0), 3.0, 0.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(-2.0, 3, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -186,6 +184,11 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
+
+
+    // Mark completion of system construction
+    rig->GetSystem()->SetupInitial();
+
 
     // ---------------
     // Simulation loop
@@ -245,7 +248,8 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
 
-		std::cout << "Step: " << step_number << "   Time: " << time << std::endl;
+		std::cout << "Step: " << step_number << "   Time: " << time <<"  Number of Iterations: " << mystepper->GetNumIterations() <<std::endl;
+
     }
 
     delete rig;

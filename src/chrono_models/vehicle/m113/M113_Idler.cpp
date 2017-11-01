@@ -30,8 +30,8 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Idler::m_wheel_mass = 429.5;
-const ChVector<> M113_Idler::m_wheel_inertia(12.55, 14.70, 12.55);
+const double M113_Idler::m_wheel_mass = 44.2;
+const ChVector<> M113_Idler::m_wheel_inertia(0.683, 1.06, 0.683); 
 const double M113_Idler::m_wheel_radius = 0.255;
 const double M113_Idler::m_wheel_width = 0.181;
 const double M113_Idler::m_wheel_gap = 0.051;

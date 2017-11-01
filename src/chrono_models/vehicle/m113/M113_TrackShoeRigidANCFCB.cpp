@@ -34,9 +34,9 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 
 //// TODO: check these values
-const double M113_TrackShoeRigidANCFCB::m_tread_mass = 18.02;
+const double M113_TrackShoeRigidANCFCB::m_tread_mass = 1.8;
 const double M113_TrackShoeRigidANCFCB::m_web_mass = 2.0;
-const ChVector<> M113_TrackShoeRigidANCFCB::m_tread_inertias(0.22, 0.04, 0.25);
+const ChVector<> M113_TrackShoeRigidANCFCB::m_tread_inertias(0.015, 0.001, 0.016);
 const ChVector<> M113_TrackShoeRigidANCFCB::m_web_inertias(0.01, 0.01, 0.01);
 
 const double M113_TrackShoeRigidANCFCB::m_shoe_height = 0.06;

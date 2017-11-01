@@ -275,6 +275,40 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         }
     }
 
+    // -------------------------------------
+    // Options for visualization in irrlicht
+    // -------------------------------------
+
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetShrinkElements(true, 0.85);
+    mvisualizemesh->SetSmoothFaces(true);
+    m_web_mesh->AddAsset(mvisualizemesh);
+
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshref->SetWireframe(true);
+    mvisualizemeshref->SetDrawInUndeformedReference(true);
+    m_web_mesh->AddAsset(mvisualizemeshref);
+
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshC->SetSymbolsThickness(0.004);
+    m_web_mesh->AddAsset(mvisualizemeshC);
+
+    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshD->SetSymbolsScale(1);
+    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetZbufferHide(false);
+    m_web_mesh->AddAsset(mvisualizemeshD);
+    //-------------------------------------------------------------------
+
+
     // Add the mesh to the system
     m_shoe->GetSystem()->Add(m_web_mesh);
 #endif
@@ -298,7 +332,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // All layers for all elements share the same material.
     double rho_rubber = 1.1e3;
     ChVector<> E_rubber(0.01e9, 0.01e9, 0.01e9);
-    ChVector<> nu_rubber(0.49, 0.49, 0.49);
+    ChVector<> nu_rubber(0.3, 0.3, 0.3);
     //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
     ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
     auto mat_rubber = std::make_shared<ChMaterialShellANCF_8>(rho_rubber, E_rubber, nu_rubber, G_rubber);
@@ -392,6 +426,39 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Add the mesh to the system
     m_shoe->GetSystem()->Add(m_web_mesh);
+
+    // -------------------------------------
+    // Options for visualization in irrlicht
+    // -------------------------------------
+
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetShrinkElements(true, 0.85);
+    mvisualizemesh->SetSmoothFaces(true);
+    m_web_mesh->AddAsset(mvisualizemesh);
+
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshref->SetWireframe(true);
+    mvisualizemeshref->SetDrawInUndeformedReference(true);
+    m_web_mesh->AddAsset(mvisualizemeshref);
+
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshC->SetSymbolsThickness(0.004);
+    m_web_mesh->AddAsset(mvisualizemeshC);
+
+    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
+    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshD->SetSymbolsScale(1);
+    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetZbufferHide(false);
+    m_web_mesh->AddAsset(mvisualizemeshD);
+    //-------------------------------------------------------------------
 #endif
 
 
@@ -555,7 +622,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> ydir = rot.GetYaxis();
     ChVector<> zdir = rot.GetZaxis();
 
-    ChVector<> seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir;
+    ChVector<> seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir - (0.5 * GetBeltWidth()) * ydir;
 
 #ifdef USE_ANCF_4
     int N_x = m_num_elements_length + 1;
@@ -598,8 +665,8 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Move the nodes on the mesh to the correct location
     int node_idx = 0;
-    for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
-        for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+    for (int x_idx = 0; x_idx < N_x_edge; x_idx++) {
+        for (int y_idx = 0; y_idx < N_y_edge; y_idx++) {
             if ((x_idx % 2 == 1) && (y_idx % 2 == 1))
                 continue;
 

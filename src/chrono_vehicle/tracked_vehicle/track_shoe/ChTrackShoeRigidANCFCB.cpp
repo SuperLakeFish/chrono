@@ -38,8 +38,8 @@
 #include "chrono_fea/ChNodeFEAbase.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
-#define USE_ANCF_4;
-//#define USE_ANCF_8;
+#define USE_ANCF_4
+//#define USE_ANCF_8
 
 using namespace chrono::fea;
 
@@ -207,7 +207,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // All layers for all elements share the same material.
     double rho_rubber = 1.1e3;
     ChVector<> E_rubber(0.01e9, 0.01e9, 0.01e9);
-    ChVector<> nu_rubber(0.49, 0.49, 0.49);
+    ChVector<> nu_rubber(0.3, 0.3, 0.3);
     //ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
     ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
     auto mat_rubber = std::make_shared<ChMaterialShellANCF>(rho_rubber, E_rubber, nu_rubber, G_rubber);

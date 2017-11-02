@@ -191,8 +191,8 @@ class CH_VEHICLE_API ChTrackShoeRigidANCFCB : public ChTrackShoe {
     double m_center_m_arc_start;                          ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;                            ///< ending angle of the (-x) arc, in tread body x-z plane
 
-    int m_num_elements_length = 1;
-    int m_num_elements_width = 1;
+    int m_num_elements_length = 3;
+    int m_num_elements_width = 4;
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.

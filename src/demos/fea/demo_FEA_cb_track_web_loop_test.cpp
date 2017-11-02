@@ -59,12 +59,14 @@ int main(int argc, char* argv[]) {
 	GetLog() << "-----------------------------------------------------------\n";
 
 	//Problem Geometry
-    double radius = 8 * 25.4/1000;
+    int num_sections = 128;
     double thickness = 1.75 * 25.4 / 1000;
     double width = 12.5 * 25.4/1000;
     double box_length = 3.0 * 25.4 / 1000;
-    int num_sections = 8;
-	
+    
+    double radius = (2*box_length*num_sections)/CH_C_2PI;
+
+
 	int num_elements_length = 3;
 	int num_elements_width = 4;
 
@@ -293,7 +295,7 @@ int main(int argc, char* argv[]) {
 		application.EndScene();
 
 		if ((step_num % 10)==0) {
-			std::cout << "Time: " << my_system.GetChTime() << std::endl;
+			std::cout << "Time: " << my_system.GetChTime() << "  Number of Iterations: " << mystepper->GetNumIterations() << std::endl;
 		}
 		
 		step_num++;

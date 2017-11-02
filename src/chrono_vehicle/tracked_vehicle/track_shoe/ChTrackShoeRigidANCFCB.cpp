@@ -863,7 +863,7 @@ void ChTrackShoeRigidANCFCB::Connect(std::shared_ptr<ChTrackShoe> next) {
 
     // Change the gradient on the web boundary nodes that will connect to the current shoe body
     // and then connect those web nodes to the show tread body
-    for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+    for (int y_idx = 0; y_idx < N_y; y_idx++) {
         int node_idx = y_idx + 0 * N_y;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
@@ -880,7 +880,7 @@ void ChTrackShoeRigidANCFCB::Connect(std::shared_ptr<ChTrackShoe> next) {
 
     // Change the gradient on the boundary nodes that will connect to the second fixed body
     // and then connect those nodes to the body
-    for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+    for (int y_idx = 0; y_idx < N_y; y_idx++) {
         int node_idx = y_idx + m_num_elements_length * N_y;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 

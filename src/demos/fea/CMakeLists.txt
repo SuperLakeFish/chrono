@@ -40,6 +40,7 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_Brick9
     demo_FEA_cb_track_web_test
     demo_FEA_cb_track_web_test_ancfShell_8
+	demo_FEA_cb_track_web_loop_test
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL

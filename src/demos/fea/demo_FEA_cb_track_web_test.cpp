@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Milad Rakhsha, Radu Serban
+// Authors: Michael Taylor
 // =============================================================================
 //
 // Demo on using ANCF shell elements

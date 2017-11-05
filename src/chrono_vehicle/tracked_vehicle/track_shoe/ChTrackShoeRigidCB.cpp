@@ -399,13 +399,27 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     my_loadcontainer->Add(my_loadbushingg1);
 
 #else
-    // Connect tread body to the first web segment.
-    loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
-    rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
-    auto revolute0 = std::make_shared<ChLinkLockRevolute>();
-    system->AddLink(revolute0);
-    revolute0->SetNameString(m_name + "_revolute_0");
-    revolute0->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
+
+    if (m_index == 0) {
+        // Create and initialize a point-line joint (sliding line along X)
+        loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
+        rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
+
+        auto pointline = std::make_shared<ChLinkLockPointLine>();
+        pointline->SetNameString(m_name + "_pointline");
+        pointline->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
+        system->AddLink(pointline);
+    }
+    else {
+        // Connect tread body to the first web segment Via a Revolute Joint
+        loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
+        rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
+        auto revolute0 = std::make_shared<ChLinkLockRevolute>();
+        system->AddLink(revolute0);
+        revolute0->SetNameString(m_name + "_revolute_0");
+        revolute0->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
+    }
+
 
     // Connect the web segments to each other.
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {

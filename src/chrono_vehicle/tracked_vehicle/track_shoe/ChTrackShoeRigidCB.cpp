@@ -36,7 +36,7 @@ namespace vehicle {
 
 // Utility function to calculate the center of a circle of given radius which
 // passes through two given points.
-ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
+static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
     ChVector2<> C = (A + B) / 2;
     // distance between A and B

@@ -51,7 +51,7 @@ namespace vehicle {
 
 // Utility function to calculate the center of a circle of given radius which
 // passes through two given points.
-ChVector2<> CalcCircleCenter_RigidANCF(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
+static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
     ChVector2<> C = (A + B) / 2;
     // distance between A and B
@@ -93,7 +93,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Cache the postive (+x) tooth arc position and arc starting and ending angles
     ChVector2<> tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2<> tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
-    m_center_p = CalcCircleCenter_RigidANCF(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
+    m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
     m_center_p_arc_start = std::atan2(tooth_base_p.y() - m_center_p.y(), tooth_base_p.x() - m_center_p.x());
     m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_C_2PI : m_center_p_arc_start;
     m_center_p_arc_end = std::atan2(tooth_tip_p.y() - m_center_p.y(), tooth_tip_p.x() - m_center_p.x());
@@ -107,7 +107,7 @@ void ChTrackShoeRigidANCFCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Cache the negative (-x) tooth arc position and arc starting and ending angles
     ChVector2<> tooth_base_m(-GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2<> tooth_tip_m(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
-    m_center_m = CalcCircleCenter_RigidANCF(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
+    m_center_m = CalcCircleCenter(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
     m_center_m_arc_start = std::atan2(tooth_base_m.y() - m_center_m.y(), tooth_base_m.x() - m_center_m.x());
     m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_C_2PI : m_center_m_arc_start;
     m_center_m_arc_end = std::atan2(tooth_tip_m.y() - m_center_m.y(), tooth_tip_m.x() - m_center_m.x());

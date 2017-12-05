@@ -31,7 +31,7 @@ namespace vehicle {
 
 // Utility function to calculate the center of a circle of given radius which
 // passes through two given points.
-ChVector2<> CalcCircleCenterSprocket_RigidANCF(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
+static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
     ChVector2<> C = (A + B) / 2;
     // distance between A and B
@@ -108,9 +108,9 @@ class SprocketRigidANCFCBContactCB : public ChSystem::CustomCollisionCallback {
         // Cache the points for the first sprocket tooth profile for the tooth arc centers, positive arc is in the CCW
         // direction for the first tooth profile and the negative arc is in the CW direction for the first tooth profile
         m_gear_center_p =
-            CalcCircleCenterSprocket_RigidANCF(ToothBaseWidthUpperPnt, ToothTipWidthUpperPnt, m_sprocket->GetArcRadius(), 1);
+            CalcCircleCenter(ToothBaseWidthUpperPnt, ToothTipWidthUpperPnt, m_sprocket->GetArcRadius(), 1);
         m_gear_center_m =
-            CalcCircleCenterSprocket_RigidANCF(ToothBaseWidthLowerPnt, ToothTipWidthLowerPnt, m_sprocket->GetArcRadius(), 1);
+            CalcCircleCenter(ToothBaseWidthLowerPnt, ToothTipWidthLowerPnt, m_sprocket->GetArcRadius(), 1);
 
         // Cache the starting (smallest) and ending (largest) arc angles for the positive sprocket tooth arc (ensuring
         // that both angles are positive)

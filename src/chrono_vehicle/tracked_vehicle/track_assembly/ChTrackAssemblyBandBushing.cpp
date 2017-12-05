@@ -20,13 +20,13 @@
 //
 // =============================================================================
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
-#include <algorithm>
 
 #include "chrono/core/ChLog.h"
 
-#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyRigidCB.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 
 namespace chrono {
 namespace vehicle {
@@ -47,7 +47,7 @@ namespace vehicle {
 // TODO: NEEDS fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Position of sprocket (in chassis reference frame).
     ChVector<> sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
 
@@ -553,14 +553,14 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     return true;
 }
 
-void ChTrackAssemblyRigidCB::FindCircleTangentPoints(ChVector2<> Circle1Pos,
-                                                     double Circle1Rad,
-                                                     ChVector2<> Circle2Pos,
-                                                     double Circle2Rad,
-                                                     ChVector2<>& Tan1Pnt1,
-                                                     ChVector2<>& Tan1Pnt2,
-                                                     ChVector2<>& Tan2Pnt1,
-                                                     ChVector2<>& Tan2Pnt2) {
+void ChTrackAssemblyBandBushing::FindCircleTangentPoints(ChVector2<> Circle1Pos,
+                                                         double Circle1Rad,
+                                                         ChVector2<> Circle2Pos,
+                                                         double Circle2Rad,
+                                                         ChVector2<>& Tan1Pnt1,
+                                                         ChVector2<>& Tan1Pnt2,
+                                                         ChVector2<>& Tan2Pnt1,
+                                                         ChVector2<>& Tan2Pnt2) {
     // Based on https://en.wikipedia.org/wiki/Tangent_lines_to_circles with modifications
 
     double x1 = Circle1Pos.x();
@@ -585,12 +585,12 @@ void ChTrackAssemblyRigidCB::FindCircleTangentPoints(ChVector2<> Circle1Pos,
         ChVector2<>(x2 + r2 * std::cos(gamma - (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_C_PI_2 + beta)));
 }
 
-void ChTrackAssemblyRigidCB::CheckCircleCircle(bool& found,
-                                               ChVector2<>& Point,
-                                               ChMatrixDynamic<>& Features,
-                                               int FeatureIdx,
-                                               ChVector2<>& StartingPoint,
-                                               double Radius) {
+void ChTrackAssemblyBandBushing::CheckCircleCircle(bool& found,
+                                                   ChVector2<>& Point,
+                                                   ChMatrixDynamic<>& Features,
+                                                   int FeatureIdx,
+                                                   ChVector2<>& StartingPoint,
+                                                   double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-CircleIntersection.html
 
     found = false;
@@ -657,12 +657,12 @@ void ChTrackAssemblyRigidCB::CheckCircleCircle(bool& found,
     }
 }
 
-void ChTrackAssemblyRigidCB::CheckCircleLine(bool& found,
-                                             ChVector2<>& Point,
-                                             ChMatrixDynamic<>& Features,
-                                             int FeatureIdx,
-                                             ChVector2<>& StartingPoint,
-                                             double Radius) {
+void ChTrackAssemblyBandBushing::CheckCircleLine(bool& found,
+                                                 ChVector2<>& Point,
+                                                 ChMatrixDynamic<>& Features,
+                                                 int FeatureIdx,
+                                                 ChVector2<>& StartingPoint,
+                                                 double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-LineIntersection.html
 
     found = false;

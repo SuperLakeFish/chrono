@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_TRACK_SHOE_RIGID_CB_H
-#define CH_TRACK_SHOE_RIGID_CB_H
+#ifndef CH_TRACK_SHOE_RIGID_ANCF_CB_H
+#define CH_TRACK_SHOE_RIGID_ANCF_CB_H
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
@@ -26,6 +26,15 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -33,12 +42,12 @@ namespace vehicle {
 /// @{
 
 /// Base class for a continuous band rigid-link track shoe (template definition).
-class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoe {
   public:
-    ChTrackShoeRigidCB(const std::string& name  ///< [in] name of the subsystem
-                       );
+    ChTrackShoeBandANCF(const std::string& name  ///< [in] name of the subsystem
+    );
 
-    virtual ~ChTrackShoeRigidCB() {}
+    virtual ~ChTrackShoeBandANCF() {}
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
@@ -63,7 +72,7 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     /// the web link bodies (relative to the chassis frame).
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
-                    );
+    );
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.
@@ -153,9 +162,9 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment);
 
-    friend class ChSprocketCB;
-    friend class SprocketCBContactCB;
-    friend class ChTrackAssemblyRigidCB;
+    friend class ChSprocketBandANCF;
+    friend class SprocketBandANCFContactCB;
+    friend class ChTrackAssemblyBandANCF;
 
   private:
     /// Add visualization of the tread body, based on primitives corresponding to the contact shapes.
@@ -169,19 +178,24 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
 
     std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
-    double m_seg_length;                                  ///< length of a web segment
-    double m_seg_mass;                                    ///< mass of a web segment
-    ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
-    ChVector2<> m_center_p;                               ///< center of (+x) arc, in tread body x-z plane
-    ChVector2<> m_center_m;                               ///< center of (-x) arc, in tread body x-z plane
-    double m_center_p_arc_start;                          ///< starting angle of the (+x) arc, in tread body x-z plane
-    double m_center_p_arc_end;                            ///< ending angle of the (+x) arc, in tread body x-z plane
-    double m_center_m_arc_start;                          ///< starting angle of the (-x) arc, in tread body x-z plane
-    double m_center_m_arc_end;                            ///< ending angle of the (-x) arc, in tread body x-z plane
+    std::shared_ptr<fea::ChMesh> m_web_mesh;
+
+    double m_seg_length;          ///< length of a web segment
+    double m_seg_mass;            ///< mass of a web segment
+    ChVector<> m_seg_inertia;     ///< moments of inertia of a web segment
+    ChVector2<> m_center_p;       ///< center of (+x) arc, in tread body x-z plane
+    ChVector2<> m_center_m;       ///< center of (-x) arc, in tread body x-z plane
+    double m_center_p_arc_start;  ///< starting angle of the (+x) arc, in tread body x-z plane
+    double m_center_p_arc_end;    ///< ending angle of the (+x) arc, in tread body x-z plane
+    double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
+    double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
+
+    int m_num_elements_length = 3;
+    int m_num_elements_width = 4;
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.
-typedef std::vector<std::shared_ptr<ChTrackShoeRigidCB>> ChTrackShoeRigidCBList;
+typedef std::vector<std::shared_ptr<ChTrackShoeBandANCF>> ChTrackShoeBandANCFList;
 
 /// @} vehicle_tracked_shoe
 

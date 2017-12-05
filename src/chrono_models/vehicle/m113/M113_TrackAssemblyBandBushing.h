@@ -21,8 +21,8 @@
 
 #include <string>
 
-#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyRigidCB.h"
 #include "chrono_models/ChApiModels.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,9 +32,9 @@ namespace m113 {
 /// @{
 
 /// M113 continuous band track assembly subsystem using rigid-link track shoes.
-class CH_MODELS_API M113_TrackAssemblyRigidCB : public ChTrackAssemblyRigidCB {
+class CH_MODELS_API M113_TrackAssemblyBandBushing : public ChTrackAssemblyBandBushing {
   public:
-    M113_TrackAssemblyRigidCB(VehicleSide side);
+    M113_TrackAssemblyBandBushing(VehicleSide side);
 
     virtual const ChVector<> GetSprocketLocation() const override;
     virtual const ChVector<> GetIdlerLocation() const override;

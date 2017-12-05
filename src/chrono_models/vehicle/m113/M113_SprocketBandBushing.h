@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketCB.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandBushing.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,9 +35,9 @@ namespace m113 {
 /// @{
 
 /// M113 sprocket subsystem for continuous band track (base class).
-class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
+class CH_MODELS_API M113_SprocketBandBushing : public ChSprocketBandBushing {
   public:
-    virtual ~M113_SprocketCB() {}
+    virtual ~M113_SprocketBandBushing() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -73,7 +73,7 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:
-    M113_SprocketCB(const std::string& name);
+    M113_SprocketBandBushing(const std::string& name);
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
@@ -95,10 +95,10 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
 };
 
 /// M113 sprocket subsystem for continuous band track (left side).
-class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
+class CH_MODELS_API M113_SprocketBandBushingLeft : public M113_SprocketBandBushing {
   public:
-    M113_SprocketCBLeft() : M113_SprocketCB("M113_SprocketLeft") {}
-    ~M113_SprocketCBLeft() {}
+    M113_SprocketBandBushingLeft() : M113_SprocketBandBushing("M113_SprocketLeft") {}
+    ~M113_SprocketBandBushingLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
@@ -109,10 +109,10 @@ class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
 };
 
 /// M113 sprocket subsystem for continuous band track (right side).
-class CH_MODELS_API M113_SprocketCBRight : public M113_SprocketCB {
+class CH_MODELS_API M113_SprocketBandBushingRight : public M113_SprocketBandBushing {
   public:
-    M113_SprocketCBRight() : M113_SprocketCB("M113_SprocketRight") {}
-    ~M113_SprocketCBRight() {}
+    M113_SprocketBandBushingRight() : M113_SprocketBandBushing("M113_SprocketRight") {}
+    ~M113_SprocketBandBushingRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }

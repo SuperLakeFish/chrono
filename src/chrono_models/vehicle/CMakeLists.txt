@@ -138,33 +138,33 @@ set(CVM_M113_FILES
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
     m113/M113_SprocketDoublePin.h
-    m113/M113_SprocketCB.cpp
-    m113/M113_SprocketCB.h
+    m113/M113_SprocketBandBushing.cpp
+    m113/M113_SprocketBandBushing.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
     m113/M113_TrackAssemblySinglePin.cpp
     m113/M113_TrackAssemblySinglePin.h
     m113/M113_TrackAssemblyDoublePin.cpp
     m113/M113_TrackAssemblyDoublePin.h
-	m113/M113_TrackAssemblyRigidCB.cpp
-	m113/M113_TrackAssemblyRigidCB.h
+	m113/M113_TrackAssemblyBandBushing.cpp
+	m113/M113_TrackAssemblyBandBushing.h
     m113/M113_TrackShoeSinglePin.cpp
     m113/M113_TrackShoeSinglePin.h
     m113/M113_TrackShoeDoublePin.cpp
     m113/M113_TrackShoeDoublePin.h
-    m113/M113_TrackShoeRigidCB.cpp
-    m113/M113_TrackShoeRigidCB.h
+    m113/M113_TrackShoeBandBushing.cpp
+    m113/M113_TrackShoeBandBushing.h
     m113/M113_Vehicle.cpp
     m113/M113_Vehicle.h
 )
 if(ENABLE_MODULE_FEA)
     set(CVM_M113_FEA_FILES
-        m113/M113_SprocketRigidANCFCB.cpp
-        m113/M113_SprocketRigidANCFCB.h	
-        m113/M113_TrackShoeRigidANCFCB.cpp
-        m113/M113_TrackShoeRigidANCFCB.h
-	    m113/M113_TrackAssemblyRigidANCFCB.cpp
-	    m113/M113_TrackAssemblyRigidANCFCB.h	
+        m113/M113_SprocketBandANCF.cpp
+        m113/M113_SprocketBandANCF.h	
+        m113/M113_TrackShoeBandANCF.cpp
+        m113/M113_TrackShoeBandANCF.h
+	    m113/M113_TrackAssemblyBandANCF.cpp
+	    m113/M113_TrackAssemblyBandANCF.h	
     )
 else()
     set(CVM_M113_FEA_FILES "")

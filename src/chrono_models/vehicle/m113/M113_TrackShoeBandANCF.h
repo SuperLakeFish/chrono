@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#ifndef M113_TRACK_SHOE_RIGID_CB_H
-#define M113_TRACK_SHOE_RIGID_CB_H
+#ifndef M113_TRACK_SHOE_RIGID_ANCF_CB_H
+#define M113_TRACK_SHOE_RIGID_ANCF_CB_H
 
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeRigidCB.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,10 +34,10 @@ namespace m113 {
 /// @{
 
 /// Continuous band rigid-link track shoe subsystem for the M113 vehicle.
-class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
+class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
   public:
-    M113_TrackShoeRigidCB();
-    ~M113_TrackShoeRigidCB() {}
+    M113_TrackShoeBandANCF();
+    ~M113_TrackShoeBandANCF() {}
 
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be

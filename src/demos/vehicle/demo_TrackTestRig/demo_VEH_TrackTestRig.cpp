@@ -25,7 +25,7 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidCB.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
 
 #ifdef CHRONO_FEA
 #include "chrono_fea/ChElementShellANCF.h"
@@ -34,7 +34,7 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidANCFCB.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #endif
 
 #ifdef CHRONO_MKL
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::RIGID_ANCF_CB;
+        TrackShoeType type = TrackShoeType::BAND_ANCF;
 
 #ifndef CHRONO_FEA
         // Disable use of ANCF continuous band is FEA is not available
@@ -107,14 +107,14 @@ int main(int argc, char* argv[]) {
                 track_assembly = assembly;
                 break;
             }
-            case TrackShoeType::RIGID_CB: {
-                auto assembly = std::make_shared<M113_TrackAssemblyRigidCB>(side);
+            case TrackShoeType::BAND_BUSHING: {
+                auto assembly = std::make_shared<M113_TrackAssemblyBandBushing>(side);
                 track_assembly = assembly;
                 break;
             }
-            case TrackShoeType::RIGID_ANCF_CB: {
+            case TrackShoeType::BAND_ANCF: {
 #ifdef CHRONO_FEA
-                auto assembly = std::make_shared<M113_TrackAssemblyRigidANCFCB>(side);
+                auto assembly = std::make_shared<M113_TrackAssemblyBandANCF>(side);
                 track_assembly = assembly;
 #endif
                 break;

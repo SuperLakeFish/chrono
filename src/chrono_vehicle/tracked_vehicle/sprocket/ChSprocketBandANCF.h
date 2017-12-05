@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_SPROCKET_CB_H
-#define CH_SPROCKET_CB_H
+#ifndef CH_SPROCKET_RIGID_ANCF_CB_H
+#define CH_SPROCKET_RIGID_ANCF_CB_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -33,12 +33,12 @@ namespace vehicle {
 /// Base class for a sprocket template with gear profile composed of circular arcs
 /// and a flat seat. This sprocket type is suitable for interaction with a continuous
 /// band track.
-class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
+class CH_VEHICLE_API ChSprocketBandANCF : public ChSprocket {
   public:
-    ChSprocketCB(const std::string& name  ///< [in] name of the subsystem
-                 );
+    ChSprocketBandANCF(const std::string& name  ///< [in] name of the subsystem
+    );
 
-    virtual ~ChSprocketCB() {}
+    virtual ~ChSprocketBandANCF() {}
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
     /// Return the radius of the (concave) tooth circular arcs.
     virtual double GetArcRadius() const = 0;
 
-    friend class SprocketCBContactCB;
+    friend class SprocketBandANCFContactCB;
 };
 
 /// @} vehicle_tracked_sprocket

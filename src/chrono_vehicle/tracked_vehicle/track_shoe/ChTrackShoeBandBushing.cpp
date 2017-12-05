@@ -16,17 +16,17 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
-#include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/physics/ChGlobal.h"
 
-#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeRigidCB.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
 namespace chrono {
 namespace vehicle {
@@ -65,11 +65,11 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     return O;
 }
 
-ChTrackShoeRigidCB::ChTrackShoeRigidCB(const std::string& name) : ChTrackShoe(name) {}
+ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name) : ChTrackShoe(name) {}
 
-void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                    const ChVector<>& location,
-                                    const ChQuaternion<>& rotation) {
+void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                        const ChVector<>& location,
+                                        const ChQuaternion<>& rotation) {
     // Cache values calculated from template parameters.
     m_seg_length = GetWebLength() / GetNumWebSegments();
     m_seg_mass = GetWebMass() / GetNumWebSegments();
@@ -176,8 +176,8 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                    const std::vector<ChCoordsys<>>& component_pos) {
+void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                        const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
     assert(component_pos.size() == GetNumWebSegments() + 1);
 
@@ -196,17 +196,17 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChTrackShoeRigidCB::GetMass() const {
+double ChTrackShoeBandBushing::GetMass() const {
     return GetTreadMass() + GetWebMass();
 }
 
-double ChTrackShoeRigidCB::GetPitch() const {
+double ChTrackShoeBandBushing::GetPitch() const {
     return GetToothBaseLength() + GetWebLength();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::AddShoeContact() {
+void ChTrackShoeBandBushing::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
@@ -232,7 +232,7 @@ void ChTrackShoeRigidCB::AddShoeContact() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::AddWebContact(std::shared_ptr<ChBody> segment) {
+void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
     segment->GetCollisionModel()->ClearModel();
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
@@ -245,7 +245,7 @@ void ChTrackShoeRigidCB::AddWebContact(std::shared_ptr<ChBody> segment) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::AddVisualizationAssets(VisualizationType vis) {
+void ChTrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -254,7 +254,7 @@ void ChTrackShoeRigidCB::AddVisualizationAssets(VisualizationType vis) {
         AddWebVisualization(segment);
 }
 
-void ChTrackShoeRigidCB::RemoveVisualizationAssets() {
+void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
     m_shoe->GetAssets().clear();
     for (auto segment : m_web_segments) {
         segment->GetAssets().clear();
@@ -270,7 +270,7 @@ ChColor GetColor(size_t index) {
         return ChColor(0.4f, 0.4f, 0.7f);
 }
 
-void ChTrackShoeRigidCB::AddShoeVisualization() {
+void ChTrackShoeBandBushing::AddShoeVisualization() {
     m_shoe->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
 
     // Guide pin
@@ -310,7 +310,7 @@ void ChTrackShoeRigidCB::AddShoeVisualization() {
     m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
 }
 
-void ChTrackShoeRigidCB::AddWebVisualization(std::shared_ptr<ChBody> segment) {
+void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
     segment->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
 
     auto box = std::make_shared<ChBoxShape>();
@@ -327,7 +327,7 @@ void ChTrackShoeRigidCB::AddWebVisualization(std::shared_ptr<ChBody> segment) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
+void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChSystem* system = m_shoe->GetSystem();
     ChVector<> loc;
     ChQuaternion<> rot;
@@ -341,7 +341,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
-    //Sample Stiffness and Damping matrix values for testing purposes
+    // Sample Stiffness and Damping matrix values for testing purposes
     for (unsigned int ii = 0; ii < 3; ii++) {
         K_matrix(ii, ii) = 70000000.0;
         R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
@@ -362,7 +362,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
         ChFrame<>(loc, rot),  // initial frame of bushing in abs space
         K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
         R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
-        );
+    );
     my_loadbushingg0->SetApplicationFrameA(ChFrame<>(ChVector<>(GetToothBaseLength() / 2, 0, 0)));
     my_loadbushingg0->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
     my_loadcontainer->Add(my_loadbushingg0);
@@ -377,7 +377,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
             K_matrix,                // the 6x6 (translation+rotation) K matrix in local frame
             R_matrix                 // the 6x6 (translation+rotation) R matrix in local frame
-            );
+        );
         my_loadbushingg->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
         my_loadbushingg->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
         my_loadcontainer->Add(my_loadbushingg);
@@ -393,7 +393,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
         ChFrame<>(loc, rot),  // initial frame of bushing in abs space
         K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
         R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
-        );
+    );
     my_loadbushingg1->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
     my_loadbushingg1->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
     my_loadcontainer->Add(my_loadbushingg1);
@@ -409,8 +409,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
         pointline->SetNameString(m_name + "_pointline");
         pointline->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
         system->AddLink(pointline);
-    }
-    else {
+    } else {
         // Connect tread body to the first web segment Via a Revolute Joint
         loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
@@ -419,7 +418,6 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
         revolute0->SetNameString(m_name + "_revolute_0");
         revolute0->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
     }
-
 
     // Connect the web segments to each other.
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
@@ -446,7 +444,7 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
 // -----------------------------------------------------------------------------
 // Utilities for creating tooth mesh
 // -----------------------------------------------------------------------------
-size_t ChTrackShoeRigidCB::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
+size_t ChTrackShoeBandBushing::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
     int np = 4;
     double step = 1.0 / (np - 1);
 
@@ -483,7 +481,7 @@ size_t ChTrackShoeRigidCB::ProfilePoints(std::vector<ChVector2<>>& points, std::
     return points.size();
 }
 
-std::shared_ptr<ChTriangleMeshShape> ChTrackShoeRigidCB::ToothMesh(double y) {
+std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBandBushing::ToothMesh(double y) {
     // Obtain profile points.
     std::vector<ChVector2<>> points2;
     std::vector<ChVector2<>> normals2;

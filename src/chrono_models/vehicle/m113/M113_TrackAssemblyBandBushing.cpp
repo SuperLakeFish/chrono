@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 #include "chrono_models/vehicle/m113/M113_RoadWheel.h"
-#include "chrono_models/vehicle/m113/M113_SprocketRigidANCFCB.h"
+#include "chrono_models/vehicle/m113/M113_SprocketBandBushing.h"
 #include "chrono_models/vehicle/m113/M113_Suspension.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidANCFCB.h"
-#include "chrono_models/vehicle/m113/M113_TrackShoeRigidANCFCB.h"
+#include "chrono_models/vehicle/m113/M113_TrackShoeBandBushing.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,19 +31,19 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyRigidANCFCB::m_sprocket_loc(0, 0, 0);
-const ChVector<> M113_TrackAssemblyRigidANCFCB::m_idler_loc(-3.83, 0, -0.12);
-const ChVector<> M113_TrackAssemblyRigidANCFCB::m_susp_locs_L[5] = {  //
-    ChVector<>(-0.655, 0, -0.215),                                //
-    ChVector<>(-1.322, 0, -0.215),                                //
-    ChVector<>(-1.989, 0, -0.215),                                //
-    ChVector<>(-2.656, 0, -0.215),                                //
+const ChVector<> M113_TrackAssemblyBandBushing::m_sprocket_loc(0, 0, 0);
+const ChVector<> M113_TrackAssemblyBandBushing::m_idler_loc(-3.83, 0, -0.12);
+const ChVector<> M113_TrackAssemblyBandBushing::m_susp_locs_L[5] = {  //
+    ChVector<>(-0.655, 0, -0.215),                                    //
+    ChVector<>(-1.322, 0, -0.215),                                    //
+    ChVector<>(-1.989, 0, -0.215),                                    //
+    ChVector<>(-2.656, 0, -0.215),                                    //
     ChVector<>(-3.322, 0, -0.215)};
-const ChVector<> M113_TrackAssemblyRigidANCFCB::m_susp_locs_R[5] = {  //
-    ChVector<>(-0.740, 0, -0.215),                                //
-    ChVector<>(-1.407, 0, -0.215),                                //
-    ChVector<>(-2.074, 0, -0.215),                                //
-    ChVector<>(-2.740, 0, -0.215),                                //
+const ChVector<> M113_TrackAssemblyBandBushing::m_susp_locs_R[5] = {  //
+    ChVector<>(-0.740, 0, -0.215),                                    //
+    ChVector<>(-1.407, 0, -0.215),                                    //
+    ChVector<>(-2.074, 0, -0.215),                                    //
+    ChVector<>(-2.740, 0, -0.215),                                    //
     ChVector<>(-3.407, 0, -0.215)};
 
 // -----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ const ChVector<> M113_TrackAssemblyRigidANCFCB::m_susp_locs_R[5] = {  //
 // track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyRigidANCFCB::M113_TrackAssemblyRigidANCFCB(VehicleSide side) : ChTrackAssemblyRigidANCFCB("", side) {
+M113_TrackAssemblyBandBushing::M113_TrackAssemblyBandBushing(VehicleSide side) : ChTrackAssemblyBandBushing("", side) {
     m_suspensions.resize(5);
     m_suspensions[0] = std::make_shared<M113_Suspension>(side, true);
     m_suspensions[1] = std::make_shared<M113_Suspension>(side, true);
@@ -76,31 +76,31 @@ M113_TrackAssemblyRigidANCFCB::M113_TrackAssemblyRigidANCFCB(VehicleSide side) :
     size_t num_shoes;
     switch (side) {
         case LEFT:
-            m_sprocket = std::make_shared<M113_SprocketRigidANCFCBLeft>();
+            m_sprocket = std::make_shared<M113_SprocketBandBushingLeft>();
             num_shoes = 105;
             break;
         case RIGHT:
-            m_sprocket = std::make_shared<M113_SprocketRigidANCFCBRight>();
+            m_sprocket = std::make_shared<M113_SprocketBandBushingRight>();
             num_shoes = 106;
             break;
     }
 
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<M113_TrackShoeRigidANCFCB>());
+        m_shoes.push_back(std::make_shared<M113_TrackShoeBandBushing>());
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyRigidANCFCB::GetSprocketLocation() const {
+const ChVector<> M113_TrackAssemblyBandBushing::GetSprocketLocation() const {
     return m_sprocket_loc;
 }
 
-const ChVector<> M113_TrackAssemblyRigidANCFCB::GetIdlerLocation() const {
+const ChVector<> M113_TrackAssemblyBandBushing::GetIdlerLocation() const {
     return m_idler_loc;
 }
 
-const ChVector<> M113_TrackAssemblyRigidANCFCB::GetRoadWhelAssemblyLocation(int which) const {
+const ChVector<> M113_TrackAssemblyBandBushing::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 

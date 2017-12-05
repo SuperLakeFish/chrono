@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketRigidANCFCB.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandANCF.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,9 +35,9 @@ namespace m113 {
 /// @{
 
 /// M113 sprocket subsystem for continuous band track (base class).
-class CH_MODELS_API M113_SprocketRigidANCFCB : public ChSprocketRigidANCFCB {
+class CH_MODELS_API M113_SprocketBandANCF : public ChSprocketBandANCF {
   public:
-    virtual ~M113_SprocketRigidANCFCB() {}
+    virtual ~M113_SprocketBandANCF() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -73,7 +73,7 @@ class CH_MODELS_API M113_SprocketRigidANCFCB : public ChSprocketRigidANCFCB {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:
-    M113_SprocketRigidANCFCB(const std::string& name);
+    M113_SprocketBandANCF(const std::string& name);
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
@@ -95,10 +95,10 @@ class CH_MODELS_API M113_SprocketRigidANCFCB : public ChSprocketRigidANCFCB {
 };
 
 /// M113 sprocket subsystem for continuous band track (left side).
-class CH_MODELS_API M113_SprocketRigidANCFCBLeft : public M113_SprocketRigidANCFCB {
+class CH_MODELS_API M113_SprocketBandANCFLeft : public M113_SprocketBandANCF {
   public:
-    M113_SprocketRigidANCFCBLeft() : M113_SprocketRigidANCFCB("M113_SprocketLeft") {}
-    ~M113_SprocketRigidANCFCBLeft() {}
+    M113_SprocketBandANCFLeft() : M113_SprocketBandANCF("M113_SprocketLeft") {}
+    ~M113_SprocketBandANCFLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
@@ -109,10 +109,10 @@ class CH_MODELS_API M113_SprocketRigidANCFCBLeft : public M113_SprocketRigidANCF
 };
 
 /// M113 sprocket subsystem for continuous band track (right side).
-class CH_MODELS_API M113_SprocketRigidANCFCBRight : public M113_SprocketRigidANCFCB {
+class CH_MODELS_API M113_SprocketBandANCFRight : public M113_SprocketBandANCF {
   public:
-    M113_SprocketRigidANCFCBRight() : M113_SprocketRigidANCFCB("M113_SprocketRight") {}
-    ~M113_SprocketRigidANCFCBRight() {}
+    M113_SprocketBandANCFRight() : M113_SprocketBandANCF("M113_SprocketRight") {}
+    ~M113_SprocketBandANCFRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }

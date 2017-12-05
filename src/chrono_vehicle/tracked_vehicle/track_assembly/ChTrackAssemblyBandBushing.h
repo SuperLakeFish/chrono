@@ -20,8 +20,8 @@
 //
 // =============================================================================
 
-#ifndef CH_TRACK_ASSEMBLY_RIGID_ANCF_CB_H
-#define CH_TRACK_ASSEMBLY_RIGID_ANCF_CB_H
+#ifndef CH_TRACK_ASSEMBLY_RIGID_CB_H
+#define CH_TRACK_ASSEMBLY_RIGID_CB_H
 
 #include <vector>
 
@@ -29,8 +29,8 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketRigidANCFCB.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeRigidANCFCB.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandBushing.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
 namespace chrono {
 namespace vehicle {
@@ -43,14 +43,14 @@ namespace vehicle {
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
 /// This class defines the template for a track assembly using continuous band rigid-body
 /// track shoes.
-class CH_VEHICLE_API ChTrackAssemblyRigidANCFCB : public ChTrackAssembly {
+class CH_VEHICLE_API ChTrackAssemblyBandBushing : public ChTrackAssembly {
   public:
-    ChTrackAssemblyRigidANCFCB(const std::string& name,  ///< [in] name of the subsystem
-                           VehicleSide side          ///< [in] assembly on left/right vehicle side
-                           )
+    ChTrackAssemblyBandBushing(const std::string& name,  ///< [in] name of the subsystem
+                               VehicleSide side          ///< [in] assembly on left/right vehicle side
+                               )
         : ChTrackAssembly(name, side) {}
 
-    virtual ~ChTrackAssemblyRigidANCFCB() {}
+    virtual ~ChTrackAssemblyBandBushing() {}
 
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const override { return m_shoes.size(); }
@@ -62,8 +62,8 @@ class CH_VEHICLE_API ChTrackAssemblyRigidANCFCB : public ChTrackAssembly {
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const override { return m_shoes[id]; }
 
   protected:
-    std::shared_ptr<ChSprocketRigidANCFCB> m_sprocket;  ///< sprocket subsystem
-    ChTrackShoeRigidANCFCBList m_shoes;            ///< track shoes
+    std::shared_ptr<ChSprocketBandBushing> m_sprocket;  ///< sprocket subsystem
+    ChTrackShoeBandBushingList m_shoes;                 ///< track shoes
 
   private:
     /// Assemble track shoes over wheels.
@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChTrackAssemblyRigidANCFCB : public ChTrackAssembly {
         ChVector2<>& Tan1Pnt2,   ///> Point on Circle 2 for the first calculated outside tangent
         ChVector2<>& Tan2Pnt1,   ///> Point on Circle 1 for the second calculated outside tangent
         ChVector2<>& Tan2Pnt2    ///> Point on Circle 2 for the second calculated outside tangent
-        );
+    );
     void CheckCircleCircle(
         bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
                       /// the current circle belt feature
@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChTrackAssemblyRigidANCFCB : public ChTrackAssembly {
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap
         double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
-        );
+    );
     void CheckCircleLine(
         bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
                       /// the current circle belt feature
@@ -101,7 +101,7 @@ class CH_VEHICLE_API ChTrackAssemblyRigidANCFCB : public ChTrackAssembly {
         int FeatureIdx,               ///< Current belt feature to check the intersection of
         ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap
         double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
-        );
+    );
 
     std::shared_ptr<ChBodyAuxRef> m_chassis;
     double m_sprocket_offset;

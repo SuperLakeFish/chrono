@@ -23,23 +23,11 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
+
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
-
-#ifdef CHRONO_FEA
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
-#endif
-
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
-#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -57,15 +45,11 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 
 double post_limit = 0.2;
 
-// Use HHT (only if MKL is available)
-bool use_HHT = true;
-
 // Simulation step size
-double step_size = 1e-5;
+double step_size = 1e-3;
 
 // Time interval between two render frames
-//double render_step_size = 1.0 / 500;
-double render_step_size = step_size;
+double render_step_size = 1.0 / 50;
 
 // Output (screenshot captures)
 bool img_output = false;
@@ -76,10 +60,6 @@ const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // -------------------------
-    // Create the track test rig
-    // -------------------------
-    
     ChTrackTestRig* rig = nullptr;
     ChVector<> attach_loc(0, 1, 0);
 
@@ -87,13 +67,7 @@ int main(int argc, char* argv[]) {
         rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::BAND_ANCF;
-
-#ifndef CHRONO_FEA
-        // Disable use of ANCF continuous band is FEA is not available
-        if (type == TrackShoeType::RIGID_ANCF_CB)
-            type = TrackShoeType::SINGLE_PIN;
-#endif
+        TrackShoeType type = TrackShoeType::SINGLE_PIN;
 
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
@@ -107,32 +81,26 @@ int main(int argc, char* argv[]) {
                 track_assembly = assembly;
                 break;
             }
-            case TrackShoeType::BAND_BUSHING: {
-                auto assembly = std::make_shared<M113_TrackAssemblyBandBushing>(side);
-                track_assembly = assembly;
-                break;
-            }
-            case TrackShoeType::BAND_ANCF: {
-#ifdef CHRONO_FEA
-                auto assembly = std::make_shared<M113_TrackAssemblyBandANCF>(side);
-                track_assembly = assembly;
-#endif
-                break;
-            }
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
     }
 
-    // -----------------------------
-    // Initialize the track test rig
-    // -----------------------------
+    //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+    rig->GetSystem()->SetMaxItersSolverSpeed(50);
+    rig->GetSystem()->SetMaxItersSolverStab(50);
+    rig->GetSystem()->SetTol(0);
+    rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+    rig->GetSystem()->SetMinBounceSpeed(2.0);
+    rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
+    rig->GetSystem()->SetSolverSharpnessParam(1.0);
+
+    rig->SetMaxTorque(6000);
 
     ChVector<> rig_loc(0, 0, 2);
     ChQuaternion<> rig_rot(1, 0, 0, 0);
     rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
-
-    //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
     rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
@@ -144,10 +112,7 @@ int main(int argc, char* argv[]) {
     ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
+    // Create the vehicle Irrlicht application.
     ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
@@ -155,80 +120,30 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(-2.0,0.0,0.0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(-2.0, 3, 0));
+    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
+    // Create the driver system and set the time response for keyboard inputs.
     ChIrrGuiDriverTTR driver(app, post_limit);
-    // Set the time response for keyboard inputs.
     double steering_time = 1.0;      // time to go from 0 to max
     double displacement_time = 2.0;  // time to go from 0 to max applied post motion
     driver.SetSteeringDelta(render_step_size / steering_time);
     driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
     driver.Initialize();
 
-    // -----------------
     // Initialize output
-    // -----------------
-
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        cout << "Error creating directory " << out_dir << endl;
+        std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
-    }
-
-    // ------------------------------
-    // Solver and integrator settings
-    // ------------------------------
-
-#ifndef CHRONO_MKL
-    // Override use of HHT is MKL is not available
-    use_HHT = false;
-#endif
-
-    if (use_HHT) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-        rig->GetSystem()->SetSolver(mkl_solver);
-        mkl_solver->SetSparsityPatternLock(false);
-        rig->GetSystem()->Update();
-
-        rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
-        mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(200);
-        mystepper->SetAbsTolerances(1e-02);
-        mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
-        mystepper->SetScaling(true);
-        mystepper->SetVerbose(false);
-        mystepper->SetStepControl(true);
-        mystepper->SetModifiedNewton(false);
-#endif
-    }
-    else {
-        rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
-        rig->GetSystem()->SetMaxItersSolverSpeed(200);
-        rig->GetSystem()->SetMaxItersSolverStab(200);
-        rig->GetSystem()->SetTol(0);
-        rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        rig->GetSystem()->SetMinBounceSpeed(2.0);
-        rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
-        rig->GetSystem()->SetSolverSharpnessParam(1.0);
-        rig->SetMaxTorque(6000);
     }
 
     // ---------------
     // Simulation loop
     // ---------------
-
-    // IMPORTANT: Mark completion of system construction
-    rig->GetSystem()->SetupInitial();
 
     // Inter-module communication data
     TerrainForces shoe_forces(1);
@@ -283,15 +198,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        cout << "Step: " << step_number << "   Time: " << time;
-        if (use_HHT) {
-#ifdef CHRONO_MKL
-            auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
-            cout << "  Number of Iterations: " << mystepper->GetNumIterations();
-#endif
-        }
-        cout << endl;
     }
 
     delete rig;

@@ -26,7 +26,11 @@
 
 #include "chrono/core/ChLog.h"
 
+#include "chrono_fea/ChMesh.h"
+
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
 namespace vehicle {
@@ -524,6 +528,12 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         }
     }
 
+
+    // Create and add the mesh container for the track shoe webs to the system
+    m_track_mesh = std::make_shared<ChMesh>();
+    m_chassis->GetSystem()->Add(m_track_mesh);
+
+
     // Now create all of the track shoes at the located points
     auto num_shoe_elements = ShoeConnectionLengths.GetRows();
     for (int s = 0; s < num_shoes; s++) {
@@ -544,6 +554,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
         // Set index within the track assembly
         m_shoes[s]->SetIndex(s);
+        // Pass the track mesh container to the shoe so that it adds to it
+        m_shoes[s]->SetMesh(m_track_mesh);
         // Initialize the track shoe system
         m_shoes[s]->Initialize(m_chassis, shoe_components_coordsys);
     }

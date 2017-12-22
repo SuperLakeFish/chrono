@@ -162,6 +162,12 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment);
 
+    /// Set the FEA Mesh container to use (Can only be called before the shoe is initialized)
+    /// Returns true if the FEA Mesh container was set
+    /// Returns false if it was not set.
+    virtual bool SetMesh(std::shared_ptr<fea::ChMesh> mesh);
+
+
     friend class ChSprocketBandANCF;
     friend class SprocketBandANCFContactCB;
     friend class ChTrackAssemblyBandANCF;
@@ -192,6 +198,10 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoe {
 
     int m_num_elements_length = 3;
     int m_num_elements_width = 4;
+
+    bool m_is_initialized = false;
+
+    unsigned int m_starting_node_index;
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.

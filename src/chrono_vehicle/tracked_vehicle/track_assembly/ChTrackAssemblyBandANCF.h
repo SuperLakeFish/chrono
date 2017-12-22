@@ -105,6 +105,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssembly {
 
     std::shared_ptr<ChBodyAuxRef> m_chassis;
     double m_sprocket_offset;
+    std::shared_ptr<fea::ChMesh> m_track_mesh;
 };
 
 /// @} vehicle_tracked

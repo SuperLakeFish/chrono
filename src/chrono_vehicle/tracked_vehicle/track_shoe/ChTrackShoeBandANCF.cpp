@@ -85,6 +85,9 @@ ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name) : ChTrackShoe(
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const ChVector<>& location,
                                      const ChQuaternion<>& rotation) {
+    //Set the initialized flag to true to prevent a new FEA mesh container from being set
+    m_is_initialized = true;
+
     // Cache values calculated from template parameters.
     m_seg_length = GetWebLength() / GetNumWebSegments();
     m_seg_mass = GetWebMass() / GetNumWebSegments();
@@ -190,9 +193,16 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     //    AddWebContact(m_web_segments[is]);
     //}
 
-#ifdef USE_ANCF_4
-    m_web_mesh = std::make_shared<ChMesh>();
+    //Create a mesh container if one has not already been setup for the entire track
+    if (!m_web_mesh) {
+        m_web_mesh = std::make_shared<ChMesh>();
 
+        // Add the mesh to the system
+        m_shoe->GetSystem()->Add(m_web_mesh);
+    }
+    m_starting_node_index = m_web_mesh->GetNnodes();
+
+#ifdef USE_ANCF_4
     int N_x = m_num_elements_length + 1;
     int N_y = m_num_elements_width + 1;
 
@@ -244,10 +254,10 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
         for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
             // Adjacent nodes
-            int node0 = y_idx + x_idx * N_y;
-            int node1 = y_idx + (x_idx + 1) * N_y;
-            int node2 = (y_idx + 1) + (x_idx + 1) * N_y;
-            int node3 = (y_idx + 1) + x_idx * N_y;
+            unsigned int node0 = m_starting_node_index + y_idx + x_idx * N_y;
+            unsigned int node1 = m_starting_node_index + y_idx + (x_idx + 1) * N_y;
+            unsigned int node2 = m_starting_node_index + (y_idx + 1) + (x_idx + 1) * N_y;
+            unsigned int node3 = m_starting_node_index + (y_idx + 1) + x_idx * N_y;
 
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF>();
@@ -306,13 +316,9 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_web_mesh->AddAsset(mvisualizemeshD);
     //-------------------------------------------------------------------
 
-    // Add the mesh to the system
-    m_shoe->GetSystem()->Add(m_web_mesh);
 #endif
 
 #ifdef USE_ANCF_8
-    m_web_mesh = std::make_shared<ChMesh>();
-
     int N_x_edge = 2 * m_num_elements_length + 1;
     int N_y_edge = 2 * m_num_elements_width + 1;
     int N_x_mid = m_num_elements_length + 1;
@@ -381,15 +387,15 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             ///   |     |     |
             /// A o-----E-----o B
 
-            int node0 = 2 * y_idx + x_idx * (N_y_edge + N_y_mid);
-            int node1 = 2 * y_idx + (x_idx + 1) * (N_y_edge + N_y_mid);
-            int node2 = 2 * (y_idx + 1) + (x_idx + 1) * (N_y_edge + N_y_mid);
-            int node3 = 2 * (y_idx + 1) + x_idx * (N_y_edge + N_y_mid);
+            unsigned int node0 = m_starting_node_index + 2 * y_idx + x_idx * (N_y_edge + N_y_mid);
+            unsigned int node1 = m_starting_node_index + 2 * y_idx + (x_idx + 1) * (N_y_edge + N_y_mid);
+            unsigned int node2 = m_starting_node_index + 2 * (y_idx + 1) + (x_idx + 1) * (N_y_edge + N_y_mid);
+            unsigned int node3 = m_starting_node_index + 2 * (y_idx + 1) + x_idx * (N_y_edge + N_y_mid);
 
-            int node4 = 1 * y_idx + x_idx * (N_y_edge + N_y_mid) + N_y_edge;
-            int node5 = 2 * y_idx + (x_idx + 1) * (N_y_edge + N_y_mid) + 1;
-            int node6 = 1 * y_idx + x_idx * (N_y_edge + N_y_mid) + N_y_edge + 1;
-            int node7 = 2 * y_idx + x_idx * (N_y_edge + N_y_mid) + 1;
+            unsigned int node4 = m_starting_node_index + 1 * y_idx + x_idx * (N_y_edge + N_y_mid) + N_y_edge;
+            unsigned int node5 = m_starting_node_index + 2 * y_idx + (x_idx + 1) * (N_y_edge + N_y_mid) + 1;
+            unsigned int node6 = m_starting_node_index + 1 * y_idx + x_idx * (N_y_edge + N_y_mid) + N_y_edge + 1;
+            unsigned int node7 = m_starting_node_index + 2 * y_idx + x_idx * (N_y_edge + N_y_mid) + 1;
 
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF_8>();
@@ -418,9 +424,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_web_mesh->AddElement(element);
         }
     }
-
-    // Add the mesh to the system
-    m_shoe->GetSystem()->Add(m_web_mesh);
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -634,7 +637,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             auto node_dir = zdir;
 
             // Create the node
-            int node_idx = y_idx + x_idx * N_y;
+            int node_idx = m_starting_node_index + y_idx + x_idx * N_y;
             auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
             node->SetPos(node_loc);
@@ -654,7 +657,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     double dy = GetBeltWidth() / (2 * m_num_elements_width);
 
     // Move the nodes on the mesh to the correct location
-    int node_idx = 0;
+    int node_idx = m_starting_node_index;
     for (int x_idx = 0; x_idx < N_x_edge; x_idx++) {
         for (int y_idx = 0; y_idx < N_y_edge; y_idx++) {
             if ((x_idx % 2 == 1) && (y_idx % 2 == 1))
@@ -854,7 +857,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the web boundary nodes that will connect to the current shoe body
     // and then connect those web nodes to the show tread body
     for (int y_idx = 0; y_idx < N_y; y_idx++) {
-        int node_idx = y_idx + 0 * N_y;
+        int node_idx = m_starting_node_index + y_idx + 0 * N_y;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_cur_shoe.GetZaxis());
@@ -871,7 +874,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the boundary nodes that will connect to the second fixed body
     // and then connect those nodes to the body
     for (int y_idx = 0; y_idx < N_y; y_idx++) {
-        int node_idx = y_idx + m_num_elements_length * N_y;
+        int node_idx = m_starting_node_index + y_idx + m_num_elements_length * N_y;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_next_shoe.GetZaxis());
@@ -898,7 +901,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the web boundary nodes that will connect to the current shoe body
     // and then connect those web nodes to the show tread body
     for (int y_idx = 0; y_idx < N_y_edge; y_idx++) {
-        int node_idx = y_idx;
+        int node_idx = m_starting_node_index + y_idx;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_cur_shoe.GetZaxis());
@@ -915,7 +918,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the boundary nodes that will connect to the second fixed body
     // and then connect those nodes to the body
     for (int y_idx = 0; y_idx < N_y_edge; y_idx++) {
-        int node_idx = y_idx + m_num_elements_length * (N_y_edge + N_y_mid);
+        int node_idx = m_starting_node_index + y_idx + m_num_elements_length * (N_y_edge + N_y_mid);
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_next_shoe.GetZaxis());
@@ -929,6 +932,16 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
         system->Add(constraintD);
     }
 #endif
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+bool ChTrackShoeBandANCF::SetMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    if (!m_is_initialized) {
+        m_web_mesh = mesh;
+        return(true);
+    }
+    return(false);
 }
 
 // -----------------------------------------------------------------------------

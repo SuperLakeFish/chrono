@@ -31,9 +31,9 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_SprocketBandANCF::m_gear_mass = 65.422;
-const ChVector<> M113_SprocketBandANCF::m_gear_inertia(1.053, 1.498, 1.053);
-const double M113_SprocketBandANCF::m_axle_inertia = 1;
+const double M113_SprocketBandANCF::m_gear_mass = 27.68;
+const ChVector<> M113_SprocketBandANCF::m_gear_inertia(0.646, 0.883, 0.646);
+const double M113_SprocketBandANCF::m_axle_inertia = 0.02;
 const double M113_SprocketBandANCF::m_separation = 0.278;
 
 // Gear profile data

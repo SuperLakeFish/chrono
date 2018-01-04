@@ -19,6 +19,9 @@
 
 #include <cmath>
 
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
+
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
@@ -81,7 +84,7 @@ class SprocketBandBushingContactCB : public ChSystem::CustomCollisionCallback {
         // and the outer line segment edge of the tooth's base width
         double HalfBaseWidthCordAng = std::asin((m_sprocket->GetBaseWidth() / 2) / OutRad);
 
-        // The angle measured at the center of the sprocket bewteen the end of one tooth profile
+        // The angle measured at the center of the sprocket between the end of one tooth profile
         // and the start of the next (angle where the profile runs along the outer radius
         // of the sprocket)
         double OuterRadArcAng = m_beta - 2 * HalfBaseWidthCordAng;
@@ -271,11 +274,11 @@ void SprocketBandBushingContactCB::OnCustomCollision(ChSystem* system) {
 
         CheckTreadSegmentSprocket(shoe->GetShoeBody(), locS_abs);
 
-        for (size_t web = 0; web < shoe->GetNumWebSegments(); web++) {
-            // Perform collision test for the ith web segment
-            CheckWebSegmentSprocket(shoe->GetGetWebSegment(web), locS_abs, shoe->GetWebThickness(),
-                                    shoe->GetGetWebSegmentLength());
-        }
+        // for (size_t web = 0; web < shoe->GetNumWebSegments(); web++) {
+        //    // Perform collision test for the ith web segment
+        //    CheckWebSegmentSprocket(shoe->GetGetWebSegment(web), locS_abs, shoe->GetWebThickness(),
+        //                            shoe->GetGetWebSegmentLength());
+        //}
     }
 }
 
@@ -637,6 +640,63 @@ void SprocketBandBushingContactCB::CheckSegmentCircle(std::shared_ptr<ChBody> Be
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSprocketBandBushing::ChSprocketBandBushing(const std::string& name) : ChSprocket(name) {}
+
+// -----------------------------------------------------------------------------
+// Initialize this sprocket subsystem.
+// -----------------------------------------------------------------------------
+void ChSprocketBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                       const ChVector<>& location,
+                                       ChTrackAssembly* track) {
+    // Invoke the base class method
+    ChSprocket::Initialize(chassis, location, track);
+
+    double radius = GetOuterRadius();
+    double width = 0.5 * (GetGuideWheelWidth() - GetGuideWheelGap());
+    double offset = 0.25 * (GetGuideWheelWidth() + GetGuideWheelGap());
+
+    m_gear->GetCollisionModel()->ClearModel();
+
+    m_gear->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
+    m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
+
+    m_gear->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
+    m_gear->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
+
+    m_gear->GetCollisionModel()->BuildModel();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSprocketBandBushing::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    ChSprocket::AddVisualizationAssets(vis);
+
+    double radius = GetOuterRadius();
+    double width = GetGuideWheelWidth();
+    double gap = GetGuideWheelGap();
+
+    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
+    cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
+    cyl_1->GetCylinderGeometry().rad = radius;
+    m_gear->AddAsset(cyl_1);
+
+    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
+    cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
+    cyl_2->GetCylinderGeometry().rad = radius;
+    m_gear->AddAsset(cyl_2);
+
+    auto tex = std::make_shared<ChTexture>();
+    tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
+    m_gear->AddAsset(tex);
+}
+
+void ChSprocketBandBushing::RemoveVisualizationAssets() {
+    m_gear->GetAssets().clear();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

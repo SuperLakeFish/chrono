@@ -45,6 +45,9 @@ const double M113_SprocketBandANCF::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBandANCF::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBandANCF::m_gear_RA = 0.2307 * 1.04;
 
+const double M113_SprocketBandANCF::m_gear_guide_wheel_width = 0.181;
+const double M113_SprocketBandANCF::m_gear_guide_wheel_gap = 0.051;
+
 const std::string M113_SprocketBandANCFLeft::m_meshName = "Sprocket2_L_POV_geom";
 const std::string M113_SprocketBandANCFLeft::m_meshFile = "M113/Sprocket2_L.obj";
 
@@ -67,7 +70,7 @@ void M113_SprocketBandANCF::AddVisualizationAssets(VisualizationType vis) {
         //// TODO
         //// Set up mesh for sprocket gear
         //// For now, default to rendering the profile.
-        ChSprocket::AddVisualizationAssets(vis);
+        ChSprocketBandANCF::AddVisualizationAssets(vis);
         ////geometry::ChTriangleMeshConnected trimesh;
         ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
         ////auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
@@ -75,7 +78,7 @@ void M113_SprocketBandANCF::AddVisualizationAssets(VisualizationType vis) {
         ////trimesh_shape->SetName(GetMeshName());
         ////m_gear->AddAsset(trimesh_shape);
     } else {
-        ChSprocket::AddVisualizationAssets(vis);
+        ChSprocketBandANCF::AddVisualizationAssets(vis);
     }
 }
 

@@ -338,7 +338,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> nu_rubber(0.3, 0.3, 0.3);
     // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
     ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
-    auto mat_rubber = std::make_shared<ChMaterialShellANCF_8>(rho_rubber, E_rubber, nu_rubber, G_rubber);
+    auto mat_rubber = std::make_shared<ChMaterialShellANCF>(rho_rubber, E_rubber, nu_rubber, G_rubber);
 
     // Create an orthotropic material.
     // All layers for all elements share the same material.
@@ -347,7 +347,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> nu_steel(0.3, 0.3, 0.3);
     // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
     ChVector<> G_steel = E_steel / (2 * (1 + .3));
-    auto mat_steel = std::make_shared<ChMaterialShellANCF_8>(rho_steel, E_steel, nu_steel, G_steel);
+    auto mat_steel = std::make_shared<ChMaterialShellANCF>(rho_steel, E_steel, nu_steel, G_steel);
 
     // Create and add the nodes
     for (int x_idx = 0; x_idx < N_x_edge; x_idx++) {

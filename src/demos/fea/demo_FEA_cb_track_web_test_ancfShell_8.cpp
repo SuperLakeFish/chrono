@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 	ChVector<> E(2.1e7, 2.1e7, 2.1e7);
 	ChVector<> nu(0.3, 0.3, 0.3);
 	ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-	auto mat = std::make_shared<ChMaterialShellANCF_8>(rho, E, nu, G);
+	auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
 	// Create the elements
 	for (int x_idx = 0; x_idx < num_elements_length; x_idx++) {

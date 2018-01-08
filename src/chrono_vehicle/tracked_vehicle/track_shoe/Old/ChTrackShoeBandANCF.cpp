@@ -12,8 +12,7 @@
 // Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// Base class for a continuous band track shoe using an ANCFshell-based web
-// (template definition).
+// Base class for a continuous band rigid-link track shoe (template definition).
 //
 // =============================================================================
 
@@ -81,16 +80,46 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
     return O;
 }
 
-ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name) : ChTrackShoeBand(name) {}
+ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const ChVector<>& location,
                                      const ChQuaternion<>& rotation) {
-    // Initialize base class (create tread body)
-    ChTrackShoeBand::Initialize(chassis, location, rotation);
-
-    // Set the initialized flag to true to prevent a new FEA mesh container from being set
+    //Set the initialized flag to true to prevent a new FEA mesh container from being set
     m_is_initialized = true;
+
+    // Cache values calculated from template parameters.
+    m_seg_length = GetWebLength() / GetNumWebSegments();
+    m_seg_mass = GetWebMass() / GetNumWebSegments();
+    m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
+
+    // Cache the postive (+x) tooth arc position and arc starting and ending angles
+    ChVector2<> tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
+    m_center_p_arc_start = std::atan2(tooth_base_p.y() - m_center_p.y(), tooth_base_p.x() - m_center_p.x());
+    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_C_2PI : m_center_p_arc_start;
+    m_center_p_arc_end = std::atan2(tooth_tip_p.y() - m_center_p.y(), tooth_tip_p.x() - m_center_p.x());
+    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_C_2PI : m_center_p_arc_end;
+    if (m_center_p_arc_start > m_center_p_arc_end) {
+        double temp = m_center_p_arc_start;
+        m_center_p_arc_start = m_center_p_arc_end;
+        m_center_p_arc_end = temp;
+    }
+
+    // Cache the negative (-x) tooth arc position and arc starting and ending angles
+    ChVector2<> tooth_base_m(-GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> tooth_tip_m(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    m_center_m = CalcCircleCenter(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
+    m_center_m_arc_start = std::atan2(tooth_base_m.y() - m_center_m.y(), tooth_base_m.x() - m_center_m.x());
+    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_C_2PI : m_center_m_arc_start;
+    m_center_m_arc_end = std::atan2(tooth_tip_m.y() - m_center_m.y(), tooth_tip_m.x() - m_center_m.x());
+    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_C_2PI : m_center_m_arc_end;
+    if (m_center_m_arc_start > m_center_m_arc_end) {
+        double temp = m_center_m_arc_start;
+        m_center_m_arc_start = m_center_m_arc_end;
+        m_center_m_arc_end = temp;
+    }
 
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
@@ -99,10 +128,72 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> ydir = rot.GetYaxis();
     ChVector<> zdir = rot.GetZaxis();
 
+    // Create the tread body
+    m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_shoe->SetNameString(m_name + "_tread");
+    m_shoe->SetPos(loc);
+    m_shoe->SetRot(rot);
+    m_shoe->SetMass(GetTreadMass());
+    m_shoe->SetInertiaXX(GetTreadInertia());
+    chassis->GetSystem()->AddBody(m_shoe);
+
+    // Add contact geometry.
+    m_shoe->SetCollide(true);
+
+    switch (m_shoe->GetContactMethod()) {
+        case ChMaterialSurface::NSC:
+            m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurface::SMC:
+            m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_shoe->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_shoe->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_shoe->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_shoe->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_shoe->GetMaterialSurfaceSMC()->SetGt(m_gt);
+            break;
+    }
+
+    AddShoeContact();
+
     // Create the required number of web segment bodies
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir - (0.5 * GetBeltWidth()) * ydir;
+    // for (int is = 0; is < GetNumWebSegments(); is++) {
+    //    m_web_segments.push_back(std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody()));
+    //    m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
+    //    m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
+    //    m_web_segments[is]->SetRot(rot);
+    //    m_web_segments[is]->SetMass(m_seg_mass);
+    //    m_web_segments[is]->SetInertiaXX(m_seg_inertia);
+    //    chassis->GetSystem()->AddBody(m_web_segments[is]);
 
-    // Create a mesh container if one has not already been setup for the entire track
+    //    // Add contact geometry.
+    //    m_web_segments[is]->SetCollide(true);
+
+    //    switch (m_web_segments[is]->GetContactMethod()) {
+    //        case ChMaterialSurface::NSC:
+    //            m_web_segments[is]->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+    //            m_web_segments[is]->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
+    //            break;
+    //        case ChMaterialSurface::SMC:
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetKn(m_kn);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetGn(m_gn);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetKt(m_kt);
+    //            m_web_segments[is]->GetMaterialSurfaceSMC()->SetGt(m_gt);
+    //            break;
+    //    }
+
+    //    AddWebContact(m_web_segments[is]);
+    //}
+
+    //Create a mesh container if one has not already been setup for the entire track
     if (!m_web_mesh) {
         m_web_mesh = std::make_shared<ChMesh>();
 
@@ -497,8 +588,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
 #endif
-
-    AddWebContact();
 }
 
 // -----------------------------------------------------------------------------
@@ -506,7 +595,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
-    assert(component_pos.size() == 2);
+    assert(component_pos.size() == GetNumWebSegments() + 1);
 
     // Initialize at origin.
     Initialize(chassis, VNULL, QUNIT);
@@ -514,6 +603,11 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Overwrite absolute body locations and orientations.
     m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
     m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
+
+    // for (int is = 0; is < GetNumWebSegments(); is++) {
+    //    m_web_segments[is]->SetPos(chassis->TransformPointLocalToParent(component_pos[is + 1].pos));
+    //    m_web_segments[is]->SetRot(chassis->GetRot() * component_pos[is + 1].rot);
+    //}
 
     // Overwrite absolute node locations and orientations.
 
@@ -588,8 +682,51 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::AddWebContact() {
-    //// TODO
+double ChTrackShoeBandANCF::GetMass() const {
+    return GetTreadMass() + GetWebMass();
+}
+
+double ChTrackShoeBandANCF::GetPitch() const {
+    return GetToothBaseLength() + GetWebLength();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandANCF::AddShoeContact() {
+    m_shoe->GetCollisionModel()->ClearModel();
+
+    m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+
+    // Guide pin
+    ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
+    ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
+    m_shoe->GetCollisionModel()->AddBox(g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
+
+    // Main box
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    ChVector<> b_loc(0, 0, 0);
+    m_shoe->GetCollisionModel()->AddBox(b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
+
+    // Tread box
+    ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
+    ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
+    m_shoe->GetCollisionModel()->AddBox(t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
+
+    m_shoe->GetCollisionModel()->BuildModel();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandANCF::AddWebContact(std::shared_ptr<ChBody> segment) {
+    segment->GetCollisionModel()->ClearModel();
+
+    segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
+    segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+
+    segment->GetCollisionModel()->AddBox(m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+
+    segment->GetCollisionModel()->BuildModel();
 }
 
 // -----------------------------------------------------------------------------
@@ -599,15 +736,80 @@ void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddShoeVisualization();
-    ////AddWebVisualization();
+    for (auto segment : m_web_segments)
+        AddWebVisualization(segment);
 }
 
 void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
     m_shoe->GetAssets().clear();
-    //// TODO: remove web assets
+    for (auto segment : m_web_segments) {
+        segment->GetAssets().clear();
+    }
 }
 
-void ChTrackShoeBandANCF::AddWebVisualization() {
+ChColor GetColor_RigidANCF(size_t index) {
+    if (index == 0)
+        return ChColor(0.7f, 0.4f, 0.4f);
+    else if (index % 2 == 0)
+        return ChColor(0.4f, 0.7f, 0.4f);
+    else
+        return ChColor(0.4f, 0.4f, 0.7f);
+}
+
+void ChTrackShoeBandANCF::AddShoeVisualization() {
+    m_shoe->AddAsset(std::make_shared<ChColorAsset>(GetColor_RigidANCF(m_index)));
+
+    // Guide pin
+    ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
+    ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
+    auto box_pin = std::make_shared<ChBoxShape>();
+    box_pin->GetBoxGeometry().Size = g_hdims;
+    box_pin->GetBoxGeometry().Pos = g_loc;
+    m_shoe->AddAsset(box_pin);
+
+    // Main box
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    ChVector<> b_loc(0, 0, 0);
+    auto box_main = std::make_shared<ChBoxShape>();
+    box_main->GetBoxGeometry().Size = b_hdims;
+    box_main->GetBoxGeometry().Pos = b_loc;
+    m_shoe->AddAsset(box_main);
+
+    // Tread box
+    ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
+    ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
+    auto box_tread = std::make_shared<ChBoxShape>();
+    box_tread->GetBoxGeometry().Size = t_hdims;
+    box_tread->GetBoxGeometry().Pos = t_loc;
+    m_shoe->AddAsset(box_tread);
+
+    // Connection to first web segment
+    double radius = GetWebThickness() / 4;
+    auto cyl = std::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().rad = radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
+    m_shoe->AddAsset(cyl);
+
+    // Create tooth meshes
+    m_shoe->AddAsset(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
+    m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
+}
+
+void ChTrackShoeBandANCF::AddWebVisualization(std::shared_ptr<ChBody> segment) {
+    segment->AddAsset(std::make_shared<ChColorAsset>(GetColor_RigidANCF(m_index)));
+
+    // auto box = std::make_shared<ChBoxShape>();
+    // box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
+    // segment->AddAsset(box);
+
+    auto cyl = std::make_shared<ChCylinderShape>();
+    double radius = GetWebThickness() / 4;
+    cyl->GetCylinderGeometry().rad = radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
+    segment->AddAsset(cyl);
+
     auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
@@ -737,9 +939,135 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 bool ChTrackShoeBandANCF::SetMesh(std::shared_ptr<fea::ChMesh> mesh) {
     if (!m_is_initialized) {
         m_web_mesh = mesh;
-        return (true);
+        return(true);
     }
-    return (false);
+    return(false);
+}
+
+// -----------------------------------------------------------------------------
+// Utilities for creating tooth mesh
+// -----------------------------------------------------------------------------
+size_t ChTrackShoeBandANCF::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
+    int np = 4;
+    double step = 1.0 / (np - 1);
+
+    // Start from point on left tooth base (Am).
+    ChVector2<> Am(-GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> Bm(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    for (int i = 0; i < np; i++) {
+        ChVector2<> pc(Am.x() + (i * step) * (Bm.x() - Am.x()), Am.y() + (i * step) * (Bm.y() - Am.y()));
+        ChVector2<> nrm = (pc - m_center_m).GetNormalized();
+        ChVector2<> pt = m_center_m + nrm * GetToothArcRadius();
+        points.push_back(pt);
+        normals.push_back(nrm);
+    }
+
+    // Mid-point on tooth tip.
+    points.push_back(ChVector2<>(0, GetToothHeight() + GetWebThickness() / 2));
+    normals.push_back(ChVector2<>(0, 1));
+
+    // Continue from point on right tooth tip (Bp).
+    ChVector2<> Ap(GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> Bp(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    for (int i = 0; i < np; i++) {
+        ChVector2<> pc(Bp.x() + (i * step) * (Ap.x() - Bp.x()), Bp.y() + (i * step) * (Ap.y() - Bp.y()));
+        ChVector2<> nrm = (pc - m_center_p).GetNormalized();
+        ChVector2<> pt = m_center_p + nrm * GetToothArcRadius();
+        points.push_back(pt);
+        normals.push_back(nrm);
+    }
+
+    ////std::cout << std::endl << std::endl;
+    ////for (auto p : points)
+    ////    std::cout << p.x() << "  " << p.y() << std::endl;
+
+    return points.size();
+}
+
+std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBandANCF::ToothMesh(double y) {
+    // Obtain profile points.
+    std::vector<ChVector2<>> points2;
+    std::vector<ChVector2<>> normals2;
+    size_t np = ProfilePoints(points2, normals2);
+
+    // Create the triangular mesh.
+    geometry::ChTriangleMeshConnected trimesh;
+    std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = trimesh.getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh.getIndicesNormals();
+
+    // Number of vertices:
+    //   - 1 for the middle of the tooth base on +y side
+    //   - np for the +y tooth side
+    //   - 1 for the middle of the tooth base on -y side
+    //   - np for the -y tooth side
+    size_t num_vertices = 2 * (np + 1);
+    vertices.resize(num_vertices);
+
+    // Number of normals:
+    //   - 1 for the +y face
+    //   - 1 for the -y face
+    //   - np for the tooth surface
+    size_t num_normals = 2 + np;
+    normals.resize(num_normals);
+
+    // Number of faces:
+    //    - np-1 for the +y side
+    //    - np-1 for the -y side
+    //    - 2 * (np-1) for the tooth surface
+    size_t num_faces = 4 * (np - 1);
+    idx_vertices.resize(num_faces);
+    idx_normals.resize(num_faces);
+
+    // Load vertices.
+    double yp = y + GetToothWidth() / 2;
+    double ym = y - GetToothWidth() / 2;
+
+    size_t iv = 0;
+    vertices[iv++] = ChVector<>(0, yp, GetWebThickness() / 2);
+    for (size_t i = 0; i < np; i++)
+        vertices[iv++] = ChVector<>(points2[i].x(), yp, points2[i].y());
+    vertices[iv++] = ChVector<>(0, ym, GetWebThickness() / 2);
+    for (size_t i = 0; i < np; i++)
+        vertices[iv++] = ChVector<>(points2[i].x(), ym, points2[i].y());
+
+    // Load normals.
+    size_t in = 0;
+    normals[in++] = ChVector<>(0, +1, 0);
+    normals[in++] = ChVector<>(0, -1, 0);
+    for (size_t i = 0; i < np; i++)
+        normals[in++] = ChVector<>(normals2[i].x(), 0, normals2[i].y());
+
+    // Load triangles on +y side.
+    size_t it = 0;
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(0, i + 1, i + 2);
+        idx_normals[it] = ChVector<int>(0, 0, 0);
+        it++;
+    }
+
+    // Load triangles on -y side.
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(0, i + 1, i + 2) + (np + 1);
+        idx_normals[it] = ChVector<int>(1, 1, 1);
+        it++;
+    }
+
+    // Load triangles on tooth surface.
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(i + 1, i + 1 + (np + 1), i + 2 + (np + 1));
+        idx_normals[it] = ChVector<int>(i + 2, i + 2, i + 3);
+        it++;
+        idx_vertices[it] = ChVector<int>(i + 1, i + 2 + (np + 1), i + 2);
+        idx_normals[it] = ChVector<int>(i + 2, i + 3, i + 3);
+        it++;
+    }
+
+    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+
+    return trimesh_shape;
 }
 
 }  // end namespace vehicle

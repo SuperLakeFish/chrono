@@ -493,6 +493,8 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
     tracked_vehicle/sprocket/ChSprocketDoublePin.h
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
+    tracked_vehicle/sprocket/ChSprocketBand.h
+    tracked_vehicle/sprocket/ChSprocketBand.cpp
     tracked_vehicle/sprocket/ChSprocketBandBushing.h
     tracked_vehicle/sprocket/ChSprocketBandBushing.cpp
 
@@ -529,9 +531,11 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBand.h
+    tracked_vehicle/track_shoe/ChTrackShoeBand.cpp
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.cpp
-	
+
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
@@ -554,7 +558,7 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
-	
+
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h

@@ -20,7 +20,7 @@
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 #include "chrono_models/vehicle/m113/M113_RoadWheel.h"
-#include "chrono_models/vehicle/m113/M113_SprocketBandANCF.h"
+#include "chrono_models/vehicle/m113/M113_SprocketBand.h"
 #include "chrono_models/vehicle/m113/M113_Suspension.h"
 #include "chrono_models/vehicle/m113/M113_TrackShoeBandANCF.h"
 
@@ -76,11 +76,11 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
     size_t num_shoes;
     switch (side) {
         case LEFT:
-            m_sprocket = std::make_shared<M113_SprocketBandANCFLeft>();
+            m_sprocket = std::make_shared<M113_SprocketBandLeft>();
             num_shoes = 105;
             break;
         case RIGHT:
-            m_sprocket = std::make_shared<M113_SprocketBandANCFRight>();
+            m_sprocket = std::make_shared<M113_SprocketBandRight>();
             num_shoes = 106;
             break;
     }

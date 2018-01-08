@@ -29,7 +29,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandBushing.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
 namespace chrono {
@@ -62,8 +62,8 @@ class CH_VEHICLE_API ChTrackAssemblyBandBushing : public ChTrackAssembly {
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const override { return m_shoes[id]; }
 
   protected:
-    std::shared_ptr<ChSprocketBandBushing> m_sprocket;  ///< sprocket subsystem
-    ChTrackShoeBandBushingList m_shoes;                 ///< track shoes
+    std::shared_ptr<ChSprocketBand> m_sprocket;  ///< sprocket subsystem
+    ChTrackShoeBandBushingList m_shoes;          ///< track shoes
 
   private:
     /// Assemble track shoes over wheels.

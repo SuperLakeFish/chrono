@@ -495,23 +495,13 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
     tracked_vehicle/sprocket/ChSprocketBand.h
     tracked_vehicle/sprocket/ChSprocketBand.cpp
-    tracked_vehicle/sprocket/ChSprocketBandBushing.h
-    tracked_vehicle/sprocket/ChSprocketBandBushing.cpp
 
     tracked_vehicle/sprocket/SprocketSinglePin.h
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
     tracked_vehicle/sprocket/SprocketDoublePin.h
     tracked_vehicle/sprocket/SprocketDoublePin.cpp
 )
-if(ENABLE_MODULE_FEA)
-    set(CV_TV_FEASPROCKET_FILES
-        tracked_vehicle/sprocket/ChSprocketBandANCF.h
-        tracked_vehicle/sprocket/ChSprocketBandANCF.cpp
-    )
-else()
-    set(CV_TV_FEASPROCKET_FILES "")
-endif()
-source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES} ${CV_TV_FEASPROCKET_FILES})
+source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
 set(CV_TV_SUSPENSION_FILES
     tracked_vehicle/suspension/ChLinearDamperRWAssembly.h
@@ -668,7 +658,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_ROADWHEEL_FILES}
     ${CV_TV_ROLLER_FILES}
     ${CV_TV_SPROCKET_FILES}
-    ${CV_TV_FEASPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_FEATRACKSHOE_FILES}

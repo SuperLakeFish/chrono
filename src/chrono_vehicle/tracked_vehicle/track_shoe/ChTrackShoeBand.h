@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddShoeContact();
+    void AddShoeContact();
 
     /// Add visualization of the tread body, based on primitives corresponding to the contact shapes.
     void AddShoeVisualization();
@@ -146,7 +146,6 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
 
     friend class SprocketBandContactCB;
-    ////friend class ChTrackAssemblyBandBushing;
 };
 
 /// Vector of handles to continuous band track shoe subsystems.

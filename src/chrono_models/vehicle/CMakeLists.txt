@@ -138,8 +138,8 @@ set(CVM_M113_FILES
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
     m113/M113_SprocketDoublePin.h
-    m113/M113_SprocketBandBushing.cpp
-    m113/M113_SprocketBandBushing.h
+    m113/M113_SprocketBand.cpp
+    m113/M113_SprocketBand.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
     m113/M113_TrackAssemblySinglePin.cpp
@@ -159,8 +159,6 @@ set(CVM_M113_FILES
 )
 if(ENABLE_MODULE_FEA)
     set(CVM_M113_FEA_FILES
-        m113/M113_SprocketBandANCF.cpp
-        m113/M113_SprocketBandANCF.h	
         m113/M113_TrackShoeBandANCF.cpp
         m113/M113_TrackShoeBandANCF.h
 	    m113/M113_TrackAssemblyBandANCF.cpp

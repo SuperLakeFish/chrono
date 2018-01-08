@@ -88,8 +88,6 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     double m_seg_mass;                                    ///< mass of a web segment
     ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
 
-    friend class ChSprocketBandBushing;
-    friend class SprocketBandBushingContactCB;
     friend class ChTrackAssemblyBandBushing;
 };
 

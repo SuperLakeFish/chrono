@@ -102,8 +102,6 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
     unsigned int m_starting_node_index;
 
-    friend class ChSprocketBandANCF;
-    friend class SprocketBandANCFContactCB;
     friend class ChTrackAssemblyBandANCF;
 };
 

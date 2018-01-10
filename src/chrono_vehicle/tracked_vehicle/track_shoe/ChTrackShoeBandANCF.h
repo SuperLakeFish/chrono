@@ -79,20 +79,12 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     /// Return the number of segments that the web section is broken up into
     virtual int GetNumWebSegments() const = 0;
 
-    /// Add contact geometry for the web.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddWebContact();
-
     /// Set the FEA Mesh container to use (Can only be called before the shoe is initialized)
     /// Returns true if the FEA Mesh container was set
     /// Returns false if it was not set.
     virtual bool SetMesh(std::shared_ptr<fea::ChMesh> mesh);
 
   private:
-    /// Add visualization of the web.
-    void AddWebVisualization();
-
     std::shared_ptr<fea::ChMesh> m_web_mesh;
 
     int m_num_elements_length = 3;

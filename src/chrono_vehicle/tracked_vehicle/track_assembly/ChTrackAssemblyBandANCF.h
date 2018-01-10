@@ -61,6 +61,12 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssembly {
     /// Get a handle to the specified track shoe subsystem.
     virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const override { return m_shoes[id]; }
 
+    /// Add visualization assets for the track assembly subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override final;
+
+    /// Remove visualization assets for the track shoe subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
   protected:
     std::shared_ptr<ChSprocketBand> m_sprocket;  ///< sprocket subsystem
     ChTrackShoeBandANCFList m_shoes;             ///< track shoes

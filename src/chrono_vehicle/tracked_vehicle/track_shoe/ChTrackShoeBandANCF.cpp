@@ -192,39 +192,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         }
     }
 
-    // -------------------------------------
-    // Options for visualization in irrlicht
-    // -------------------------------------
-
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    m_web_mesh->AddAsset(mvisualizemesh);
-
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    m_web_mesh->AddAsset(mvisualizemeshref);
-
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    m_web_mesh->AddAsset(mvisualizemeshC);
-
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    m_web_mesh->AddAsset(mvisualizemeshD);
-    //-------------------------------------------------------------------
-
 #endif
 
 #ifdef USE_ANCF_8
@@ -334,38 +301,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         }
     }
 
-    // -------------------------------------
-    // Options for visualization in irrlicht
-    // -------------------------------------
-
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    m_web_mesh->AddAsset(mvisualizemesh);
-
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    m_web_mesh->AddAsset(mvisualizemeshref);
-
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    m_web_mesh->AddAsset(mvisualizemeshC);
-
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    m_web_mesh->AddAsset(mvisualizemeshD);
-    //-------------------------------------------------------------------
 #endif
 
 #if FALSE
@@ -497,8 +432,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
 #endif
-
-    AddWebContact();
 }
 
 // -----------------------------------------------------------------------------
@@ -588,53 +521,15 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::AddWebContact() {
-    //// TODO
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
     AddShoeVisualization();
-    ////AddWebVisualization();
 }
 
 void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
     m_shoe->GetAssets().clear();
-    //// TODO: remove web assets
-}
-
-void ChTrackShoeBandANCF::AddWebVisualization() {
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    m_web_mesh->AddAsset(mvisualizemesh);
-
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    m_web_mesh->AddAsset(mvisualizemeshref);
-
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    m_web_mesh->AddAsset(mvisualizemeshC);
-
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(m_web_mesh.get()));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    m_web_mesh->AddAsset(mvisualizemeshD);
 }
 
 // -----------------------------------------------------------------------------

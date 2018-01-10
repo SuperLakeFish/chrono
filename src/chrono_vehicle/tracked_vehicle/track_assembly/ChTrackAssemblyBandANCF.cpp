@@ -26,8 +26,6 @@
 
 #include "chrono/core/ChLog.h"
 
-#include "chrono_fea/ChMesh.h"
-
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
 using namespace chrono::fea;
@@ -528,11 +526,9 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         }
     }
 
-
     // Create and add the mesh container for the track shoe webs to the system
     m_track_mesh = std::make_shared<ChMesh>();
     m_chassis->GetSystem()->Add(m_track_mesh);
-
 
     // Now create all of the track shoes at the located points
     auto num_shoe_elements = ShoeConnectionLengths.GetRows();
@@ -559,6 +555,9 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         // Initialize the track shoe system
         m_shoes[s]->Initialize(m_chassis, shoe_components_coordsys);
     }
+
+    // Add contact for the mesh
+    //// TODO
 
     GetLog() << "Track assembly done.  Number of track shoes: " << ShoePoints.GetRows() / 2 << "\n";
 
@@ -730,6 +729,37 @@ void ChTrackAssemblyBandANCF::CheckCircleLine(bool& found,
         found = true;
         Point = intPnt2 + StartingPoint;
     }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetShrinkElements(true, 0.85);
+    mvisualizemesh->SetSmoothFaces(true);
+    m_track_mesh->AddAsset(mvisualizemesh);
+
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshref->SetWireframe(true);
+    mvisualizemeshref->SetDrawInUndeformedReference(true);
+    m_track_mesh->AddAsset(mvisualizemeshref);
+
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(m_track_mesh.get()));
+    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshC->SetSymbolsThickness(0.004);
+    m_track_mesh->AddAsset(mvisualizemeshC);
+}
+
+void ChTrackAssemblyBandANCF::RemoveVisualizationAssets() {
+    m_track_mesh->GetAssets().clear();
 }
 
 }  // end namespace vehicle

@@ -109,19 +109,6 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Return the thickness of the tread below the web area (tread pad for ground contact)
     virtual double GetTreadThickness() const = 0;
 
-    /// Return the center of the tread circle for the arc on the positive x side of the shoe
-    ChVector2<> GetTreadCircleCenterP() { return m_center_p; };
-    /// Return the center of the tread circle for the arc on the negative x side of the shoe
-    ChVector2<> GetTreadCircleCenterM() { return m_center_m; };
-    /// Return the starting (smallest) angle for the starting point for the positive tooth arc
-    double GetTreadCircleCenterPArcStart() { return m_center_p_arc_start; };
-    /// Return the ending (largest) angle for the starting point for the postive tooth arc
-    double GetTreadCircleCenterPArcEnd() { return m_center_p_arc_end; };
-    /// Return the starting (smallest) angle for the starting point for the negative tooth arc
-    double GetTreadCircleCenterMArcStart() { return m_center_m_arc_start; };
-    /// Return the ending (largest) angle for the starting point for the negative tooth arc
-    double GetTreadCircleCenterMArcEnd() { return m_center_m_arc_end; };
-
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
@@ -133,17 +120,17 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Get index-specific color (for visualization)
     static ChColor GetColor(size_t index);
 
+  private:
+    /// Utilities for creating the tooth visualization mesh.
+    size_t ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
+    std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
+
     ChVector2<> m_center_p;       ///< center of (+x) arc, in tread body x-z plane
     ChVector2<> m_center_m;       ///< center of (-x) arc, in tread body x-z plane
     double m_center_p_arc_start;  ///< starting angle of the (+x) arc, in tread body x-z plane
     double m_center_p_arc_end;    ///< ending angle of the (+x) arc, in tread body x-z plane
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
-
-  private:
-    /// Utilities for creating the tooth visualization mesh.
-    size_t ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
-    std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
 
     friend class SprocketBandContactCB;
 };

@@ -237,20 +237,12 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
                                                 std::pow(shoe->GetToothHeight() + shoe->GetWebThickness() / 2, 2)),
             2);
 
-
-        //// RADU: CONSIDER REMOVING ALL THESE ACCESSOR METHODS FROM ChTrackShoeBand
-        ////       WE ALREADY HAVE FRIEND ACCESS TO THAT CLASS:  JUST ACCESS THE MEMBER VARIABLES!
-
-        m_tread_center_p = shoe->GetTreadCircleCenterP();  ///< center of (+x) arc, in tread body x-z plane
-        m_tread_center_m = shoe->GetTreadCircleCenterM();  ///< center of (-x) arc, in tread body x-z plane
-        m_tread_center_p_start_angle = shoe->GetTreadCircleCenterPArcStart();  // starting positive angle of the tooth
-                                                                               // (+x ) arc, in tread body x-z plane
-        m_tread_center_p_end_angle = shoe->GetTreadCircleCenterPArcEnd();  // ending positive angle of the tooth (+x )
-                                                                           // arc, in tread body x-z plane
-        m_tread_center_m_start_angle = shoe->GetTreadCircleCenterMArcStart();  // starting positive angle of the tooth
-                                                                               // (-x ) arc, in tread body x-z plane
-        m_tread_center_m_end_angle = shoe->GetTreadCircleCenterMArcEnd();  // ending positive angle of the tooth (-x )
-                                                                           // arc, in tread body x-z plane
+        m_tread_center_p = shoe->m_center_p;                        // center of (+x) arc, in tread body x-z plane
+        m_tread_center_m = shoe->m_center_m;                        // center of (-x) arc, in tread body x-z plane
+        m_tread_center_p_start_angle = shoe->m_center_p_arc_start;  // starting positive angle of the tooth (+x ) arc
+        m_tread_center_p_end_angle = shoe->m_center_p_arc_end;      // ending positive angle of the tooth (+x ) arc
+        m_tread_center_m_start_angle = shoe->m_center_m_arc_start;  // starting positive angle of the tooth (-x ) arc
+        m_tread_center_m_end_angle = shoe->m_center_m_arc_end;      // ending positive angle of the tooth (-x ) arc
 
         m_tread_arc_radius = shoe->GetToothArcRadius();  // radius of the tooth arcs
         m_tread_tip_halfwidth =

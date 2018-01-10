@@ -318,21 +318,21 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
 
     // Load triangles on +y side.
     size_t it = 0;
-    for (size_t i = 0; i < np - 1; i++) {
+    for (int i = 0; i < np - 1; i++) {
         idx_vertices[it] = ChVector<int>(0, i + 1, i + 2);
         idx_normals[it] = ChVector<int>(0, 0, 0);
         it++;
     }
 
     // Load triangles on -y side.
-    for (size_t i = 0; i < np - 1; i++) {
+    for (int i = 0; i < np - 1; i++) {
         idx_vertices[it] = ChVector<int>(0, i + 1, i + 2) + (np + 1);
         idx_normals[it] = ChVector<int>(1, 1, 1);
         it++;
     }
 
     // Load triangles on tooth surface.
-    for (size_t i = 0; i < np - 1; i++) {
+    for (int i = 0; i < np - 1; i++) {
         idx_vertices[it] = ChVector<int>(i + 1, i + 1 + (np + 1), i + 2 + (np + 1));
         idx_normals[it] = ChVector<int>(i + 2, i + 2, i + 3);
         it++;

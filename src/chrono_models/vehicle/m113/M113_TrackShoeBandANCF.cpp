@@ -49,7 +49,6 @@ const double M113_TrackShoeBandANCF::m_tooth_width = 0.0508;  // 2 in
 const double M113_TrackShoeBandANCF::m_tooth_height = 0.0385 * 1.04;
 const double M113_TrackShoeBandANCF::m_tooth_arc_radius = 0.0540 * 1.04;
 
-const int M113_TrackShoeBandANCF::m_num_web_segments = 1;
 const double M113_TrackShoeBandANCF::m_web_length = 0.0335 * 1.04;
 const double M113_TrackShoeBandANCF::m_web_thickness = 0.0188 * 1.04;
 

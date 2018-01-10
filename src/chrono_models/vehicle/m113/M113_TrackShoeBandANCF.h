@@ -82,7 +82,6 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     virtual double GetToothHeight() const override { return m_tooth_height; }
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
 
-    virtual int GetNumWebSegments() const override { return m_num_web_segments; }
     virtual double GetWebLength() const override { return m_web_length; }
     virtual double GetWebThickness() const override { return m_web_thickness; }
 
@@ -106,7 +105,6 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     static const double m_tooth_arc_radius;
     static const double m_web_length;
     static const double m_web_thickness;
-    static const int m_num_web_segments;
     static const double m_tread_length;
     static const double m_tread_thickness;
 

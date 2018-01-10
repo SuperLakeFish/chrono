@@ -50,13 +50,10 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Number of track shoes
     int num_shoes = static_cast<int>(m_shoes.size());
 
-    // Set up web connection lengths
-    double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
-    std::vector<double> connection_lengths(1 + m_shoes[0]->GetNumWebSegments());
+    // Set up web connection lengths (always 2 for this type of track shoe)
+    std::vector<double> connection_lengths(2);
     connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
-    for (int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
-        connection_lengths[is] = seg_length;
-    }
+    connection_lengths[1] = m_shoes[0]->GetWebLength();
     
     // Calculate assembly points
     std::vector<ChVector2<>> shoe_points;

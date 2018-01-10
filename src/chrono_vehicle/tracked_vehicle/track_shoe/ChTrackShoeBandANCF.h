@@ -76,9 +76,6 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    /// Return the number of segments that the web section is broken up into
-    virtual int GetNumWebSegments() const = 0;
-
     /// Set the FEA Mesh container to use (Can only be called before the shoe is initialized)
     /// Returns true if the FEA Mesh container was set
     /// Returns false if it was not set.

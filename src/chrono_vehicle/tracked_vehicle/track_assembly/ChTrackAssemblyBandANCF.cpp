@@ -51,35 +51,30 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     int num_shoes = static_cast<int>(m_shoes.size());
 
     // Set up web connection lengths
-    ChVectorDynamic<> ShoeConnectionLengths(1 + m_shoes[0]->GetNumWebSegments());
-    ShoeConnectionLengths(0) = m_shoes[0]->GetToothBaseLength();
-
     double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
-    for (int is = 0; is < m_shoes[0]->GetNumWebSegments(); is++) {
-        ShoeConnectionLengths(1 + is) = seg_length;
+    std::vector<double> connection_lengths(1 + m_shoes[0]->GetNumWebSegments());
+    connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
+    for (int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
+        connection_lengths[is] = seg_length;
     }
-
+    
     // Calculate assembly points
-    ChMatrixDynamic<> ShoePoints;
-    bool ccw = FindAssemblyPoints(chassis, num_shoes, ShoeConnectionLengths, ShoePoints);
+    std::vector<ChVector2<>> shoe_points;
+    bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
     m_track_mesh = std::make_shared<ChMesh>();
     chassis->GetSystem()->Add(m_track_mesh);
 
     // Now create all of the track shoes at the located points
-    auto num_shoe_elements = ShoeConnectionLengths.GetRows();
+    auto num_shoe_elements = connection_lengths.size();
     for (int s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
-        for (int i = 0; i < num_shoe_elements; i++) {
-            ChVector<> loc(
-                (ShoePoints(i + s * num_shoe_elements, 0) + ShoePoints(i + 1 + s * num_shoe_elements, 0)) / 2,
-                m_sprocket_offset,
-                (ShoePoints(i + s * num_shoe_elements, 1) + ShoePoints(i + 1 + s * num_shoe_elements, 1)) / 2);
-
-            double ang =
-                std::atan2(ShoePoints(i + 1 + s * num_shoe_elements, 1) - ShoePoints(i + s * num_shoe_elements, 1),
-                           ShoePoints(i + 1 + s * num_shoe_elements, 0) - ShoePoints(i + s * num_shoe_elements, 0));
+        for (auto i = 0; i < num_shoe_elements; i++) {
+            ChVector2<> mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
+            ChVector2<> dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
+            ChVector<> loc(mid.x(), m_sprocket_offset, mid.y());
+            double ang = std::atan2(dir.y(), dir.x());
             ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
 
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
@@ -96,7 +91,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Add contact for the mesh
     //// TODO
 
-    GetLog() << "Track assembly done.  Number of track shoes: " << ShoePoints.GetRows() / 2 << "\n";
+    GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     return ccw;
 }

@@ -59,11 +59,10 @@ class CH_VEHICLE_API ChTrackAssemblyBand : public ChTrackAssembly {
     std::shared_ptr<ChSprocketBand> m_sprocket;  ///< sprocket subsystem
 
     /// Assembly Algorithm Utility Functions
-    bool FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chassis,  ///<
+    bool FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chassis,
                             int num_shoes,
-                            const ChVectorDynamic<>& ShoeConnectionLengths,  ///<
-                            ChMatrixDynamic<>& ShoePoints                    ///<
-    );
+                            const std::vector<double>& connection_lengths,
+                            std::vector<ChVector2<>>& shoe_points);
 
     void FindCircleTangentPoints(
         ChVector2<> Circle1Pos,  ///< Center Position of Circle 1

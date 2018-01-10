@@ -20,9 +20,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
@@ -34,6 +32,12 @@
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
+
+//#define USE_IRRLICHT
+#ifdef USE_IRRLICHT
+#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -51,6 +55,9 @@ std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json")
 
 double post_limit = 0.2;
 
+// Simulation length
+double t_end = 1;
+
 // Simulation step size
 double step_size = 1e-5;
 
@@ -64,6 +71,19 @@ bool img_output = false;
 const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 
 // =============================================================================
+
+// Dummy driver class (always returns 0 inputs)
+class MyDriver {
+  public:
+    MyDriver() {}
+    double GetThrottle() const { return 0; }
+    double GetDisplacement() const { return 0; }
+    void Synchronize(double time) {}
+    void Advance(double step) {}
+};
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -120,6 +140,7 @@ int main(int argc, char* argv[]) {
     ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
+#ifdef USE_IRRLICHT
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
@@ -128,7 +149,7 @@ int main(int argc, char* argv[]) {
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
-    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
+    ChVehicleIrrApp app(rig, NULL, L"Continuous Band Track Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(-2.0, 0.0, 0.0), 3.0, 0.0);
@@ -149,6 +170,12 @@ int main(int argc, char* argv[]) {
     driver.SetSteeringDelta(render_step_size / steering_time);
     driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
     driver.Initialize();
+#else
+
+    // Create a default driver (always returns 0 inputs)
+    MyDriver driver;
+
+#endif
 
     // -----------------
     // Initialize output
@@ -179,24 +206,49 @@ int main(int argc, char* argv[]) {
     mystepper->SetStepControl(true);
     mystepper->SetModifiedNewton(false);
 
+    // IMPORTANT: Mark completion of system construction
+    rig->GetSystem()->SetupInitial();
+
+    // ----------------
+    // DUMP INFORMATION
+    // ----------------
+
+    auto sys = rig->GetSystem();
+    int nmeshes = 0;
+    std::vector<int> nassets;
+    for (auto item : *sys->Get_otherphysicslist()) {
+        if (std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+            nassets.push_back(item->GetAssets().size());
+            nmeshes++;
+        }
+    }
+    std::cout << "Number of bodies:        " << sys->Get_bodylist()->size() << std::endl;
+    std::cout << "Number of physics items: " << sys->Get_otherphysicslist()->size() << std::endl;
+    std::cout << "Number of FEA meshes:    " << nmeshes << std::endl;
+    std::cout << "Number of assets/mesh:   ";
+    for (auto i : nassets)
+        std::cout << i << " ";
+    std::cout << std::endl;
+
     // ---------------
     // Simulation loop
     // ---------------
-
-    // IMPORTANT: Mark completion of system construction
-    rig->GetSystem()->SetupInitial();
 
     // Inter-module communication data
     TerrainForces shoe_forces(1);
 
     // Number of simulation steps between two 3D view render frames
+    int sim_steps = (int)std::ceil(t_end / step_size);
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
-    // Initialize simulation frame counter
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
 
-    while (app.GetDevice()->run()) {
+    // Total execution time (for integration)
+    double total_timing = 0;
+
+    while (step_number < sim_steps) {
         // Debugging output
         const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
         const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
@@ -207,20 +259,24 @@ int main(int argc, char* argv[]) {
         ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
-        // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+#ifdef USE_IRRLICHT
+        if (!app.GetDevice()->run())
+            break;
 
+        // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
+
+        if (step_number % render_steps == 0) {
             if (img_output && step_number > 1000) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
             render_frame++;
         }
+#endif
 
         // Collect output data from modules
         double throttle_input = driver.GetThrottle();
@@ -230,18 +286,27 @@ int main(int argc, char* argv[]) {
         double time = rig->GetChTime();
         driver.Synchronize(time);
         rig->Synchronize(time, post_input, throttle_input, shoe_forces);
+#ifdef USE_IRRLICHT
         app.Synchronize("", 0, throttle_input, 0);
-
+#endif
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         rig->Advance(step_size);
+#ifdef USE_IRRLICHT
         app.Advance(step_size);
+#endif
 
         // Increment frame number
         step_number++;
 
-        cout << "Step: " << step_number << "   Time: " << time;
-        cout << "  Number of Iterations: " << mystepper->GetNumIterations();
+        double step_timing = rig->GetSystem()->GetTimerStep();
+        total_timing += step_timing;
+
+        cout << "Step: " << step_number;
+        cout << "   Time: " << rig->GetChTime();
+        cout << "   Number of Iterations: " << mystepper->GetNumIterations();
+        cout << "   Timing step: " << step_timing;
+        cout << "   Timing total: " << total_timing;
         cout << endl;
     }
 

@@ -546,6 +546,8 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
 

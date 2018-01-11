@@ -48,13 +48,6 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
-    /// Initialize this track shoe system.
-    /// This version specifies the locations and orientations of the tread body and of
-    /// the web link bodies (relative to the chassis frame).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
-                    const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
-    );
-
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
@@ -69,19 +62,26 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
   protected:
     /// Return the number of segments that the web section is broken up into
     virtual int GetNumWebSegments() const = 0;
+    
     /// Return the length of just one of the web sections (in the X direction)
-    double GetGetWebSegmentLength() { return m_seg_length; };
+    double GetGetWebSegmentLength() { return m_seg_length; }
+
     /// Return a pointer to the web segment body with the provided index
-    std::shared_ptr<ChBody> GetGetWebSegment(size_t index) { return m_web_segments[index]; };
+    std::shared_ptr<ChBody> GetGetWebSegment(size_t index) { return m_web_segments[index]; }
 
     /// Add contact geometry for a web segment body.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment);
 
   private:
     /// Add visualization of a web segment, body based on primitives corresponding to the contact shapes.
     void AddWebVisualization(std::shared_ptr<ChBody> segment);
+
+    /// Initialize this track shoe system.
+    /// This version specifies the locations and orientations of the tread body and of
+    /// the web link bodies (relative to the chassis frame).
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
+                    const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
+    );
 
     std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
     double m_seg_length;                                  ///< length of a web segment

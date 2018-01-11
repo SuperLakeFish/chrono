@@ -57,13 +57,6 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
-    /// Initialize this track shoe system.
-    /// This version specifies the locations and orientations of the tread body and of
-    /// the web link bodies (relative to the chassis frame).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
-                    const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
-    );
-
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
@@ -75,19 +68,21 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override final;
 
-  protected:
-    /// Set the FEA Mesh container to use (Can only be called before the shoe is initialized)
-    /// Returns true if the FEA Mesh container was set
-    /// Returns false if it was not set.
-    virtual bool SetMesh(std::shared_ptr<fea::ChMesh> mesh);
-
   private:
+    /// Set the FEA mesh container to which this track shoe will add its nodes and elements.
+    void SetWebMesh(std::shared_ptr<fea::ChMesh> mesh);
+
+    /// Initialize this track shoe system.
+    /// This version specifies the locations and orientations of the tread body and of
+    /// the web link bodies (relative to the chassis frame).
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
+                    const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
+    );
+
     std::shared_ptr<fea::ChMesh> m_web_mesh;
 
     int m_num_elements_length = 3;
     int m_num_elements_width = 4;
-
-    bool m_is_initialized = false;
 
     unsigned int m_starting_node_index;
 

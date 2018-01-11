@@ -80,7 +80,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         // Set index within the track assembly
         m_shoes[s]->SetIndex(s);
         // Pass the track mesh container to the shoe so that it adds to it
-        m_shoes[s]->SetMesh(m_track_mesh);
+        m_shoes[s]->SetWebMesh(m_track_mesh);
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }

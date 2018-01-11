@@ -188,8 +188,6 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
     int m_gear_nteeth;                            // sprocket gear, number of teeth
     double m_separation;                          // separation distance between sprocket gears
-    //// RADU: IS THIS NEEDED ANYMORE?
-    ////double m_gear_web_broadphase_dist_squared;    // Web to Sprocket quick Broadphase distance squared check
     double m_gear_tread_broadphase_dist_squared;  // Tread body to Sprocket quick Broadphase distance squared check
 
     ChVector2<> m_gear_center_p;                 // center of (+x) arc, in sprocket body x-z plane
@@ -223,13 +221,6 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
         m_update_tread = false;
 
         auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(m_track->GetTrackShoe(0));
-
-        // Broadphase collision distance squared check for web to sprocket contact
-        //// RADU: IS THIS NEEDED ANYMORE?
-        ////m_gear_web_broadphase_dist_squared = std::pow(
-        ////    m_sprocket->GetOuterRadius() +
-        ////        std::sqrt(std::pow(shoe->GetWebThickness() / 2, 2) + std::pow(shoe->GetGetWebSegmentLength(), 2)),
-        ////    2);
 
         // Broadphase collision distance squared check for tread tooth to sprocket contact
         m_gear_tread_broadphase_dist_squared = std::pow(

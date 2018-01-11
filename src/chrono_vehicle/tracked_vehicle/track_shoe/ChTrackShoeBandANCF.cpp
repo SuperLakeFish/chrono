@@ -50,37 +50,6 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-// Utility function to calculate the center of a circle of given radius which
-// passes through two given points.
-static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
-    // midpoint
-    ChVector2<> C = (A + B) / 2;
-    // distance between A and B
-    double l = (B - A).Length();
-    // distance between C and O
-    double d = std::sqrt(r * r - l * l / 4);
-    // slope of line AB
-    double mAB = (B.y() - A.y()) / (B.x() - A.x());
-    // slope of line CO (perpendicular to AB)
-    double mCO = -1 / mAB;
-    // x offset from C
-    double x_offset = d / std::sqrt(1 + mCO * mCO);
-    // y offset from C
-    double y_offset = mCO * x_offset;
-    // circle center
-    ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
-
-    ////std::cout << std::endl;
-    ////std::cout << "radius: " << r << std::endl;
-    ////std::cout << A.x() << "  " << A.y() << std::endl;
-    ////std::cout << B.x() << "  " << B.y() << std::endl;
-    ////std::cout << O.x() << "  " << O.y() << std::endl;
-    ////std::cout << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << std::endl;
-    ////std::cout << std::endl;
-
-    return O;
-}
-
 ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name) : ChTrackShoeBand(name) {}
 
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -89,9 +58,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Initialize base class (create tread body)
     ChTrackShoeBand::Initialize(chassis, location, rotation);
 
-    // Set the initialized flag to true to prevent a new FEA mesh container from being set
-    m_is_initialized = true;
-
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
@@ -99,16 +65,11 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> ydir = rot.GetYaxis();
     ChVector<> zdir = rot.GetZaxis();
 
-    // Create the required number of web segment bodies
+    // Reference point for creating the mesh nodes for this track shoe
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir - (0.5 * GetBeltWidth()) * ydir;
 
-    // Create a mesh container if one has not already been setup for the entire track
-    if (!m_web_mesh) {
-        m_web_mesh = std::make_shared<ChMesh>();
-
-        // Add the mesh to the system
-        m_shoe->GetSystem()->Add(m_web_mesh);
-    }
+    // Get starting index for mesh nodes contributed by the track shoe
+    assert(m_web_mesh);
     m_starting_node_index = m_web_mesh->GetNnodes();
 
 #ifdef USE_ANCF_4
@@ -629,12 +590,8 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChTrackShoeBandANCF::SetMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    if (!m_is_initialized) {
-        m_web_mesh = mesh;
-        return (true);
-    }
-    return (false);
+void ChTrackShoeBandANCF::SetWebMesh(std::shared_ptr<ChMesh> mesh) {
+    m_web_mesh = mesh;
 }
 
 }  // end namespace vehicle

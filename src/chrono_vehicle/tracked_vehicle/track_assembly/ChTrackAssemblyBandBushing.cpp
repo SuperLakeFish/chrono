@@ -29,6 +29,11 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTrackAssemblyBandBushing::ChTrackAssemblyBandBushing(const std::string& name, VehicleSide side)
+    : ChTrackAssemblyBand(name, side) {}
+
+// -----------------------------------------------------------------------------
 // Assemble the track shoes over the wheels.
 //
 // Returns true if the track shoes were initialized in a counter clockwise

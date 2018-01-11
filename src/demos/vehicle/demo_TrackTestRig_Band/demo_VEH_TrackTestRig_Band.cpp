@@ -33,7 +33,7 @@
 
 #include "chrono_mkl/ChSolverMKL.h"
 
-//#define USE_IRRLICHT
+#define USE_IRRLICHT
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
             }
             case TrackShoeType::BAND_ANCF: {
                 auto assembly = std::make_shared<M113_TrackAssemblyBandANCF>(side);
+                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::NONE);
                 track_assembly = assembly;
                 break;
             }

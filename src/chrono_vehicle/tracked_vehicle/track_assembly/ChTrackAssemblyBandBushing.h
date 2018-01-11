@@ -33,17 +33,17 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked
 /// @{
 
-/// Definition of a continuous band rigid-link track assembly.
+/// Definition of a continuous band track assembly using a bushing-based web
 /// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
-/// This class defines the template for a track assembly using continuous band rigid-body
-/// track shoes.
+/// This class defines the template for a track assembly using a web modeled as
+/// multiple rigid segments connected with bushings.
 class CH_VEHICLE_API ChTrackAssemblyBandBushing : public ChTrackAssemblyBand {
   public:
+    /// Construct a bushing-based track assembly on the specified vehicle side.
     ChTrackAssemblyBandBushing(const std::string& name,  ///< [in] name of the subsystem
                                VehicleSide side          ///< [in] assembly on left/right vehicle side
-                               )
-        : ChTrackAssemblyBand(name, side) {}
+    );
 
     virtual ~ChTrackAssemblyBandBushing() {}
 

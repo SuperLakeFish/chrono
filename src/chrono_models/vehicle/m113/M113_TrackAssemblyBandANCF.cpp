@@ -88,6 +88,14 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(std::make_shared<M113_TrackShoeBandANCF>());
     }
+
+    // Specify contact properties for the web mesh
+    SetContactSurfaceType(ChTrackAssemblyBandANCF::TRIANGLE_MESH);
+
+    SetContactFrictionCoefficient(0.8f);
+    SetContactRestitutionCoefficient(0.1f);
+    SetContactMaterialProperties(1e7f, 0.3f);
+    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
 }
 
 // -----------------------------------------------------------------------------

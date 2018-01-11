@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
 
     auto sys = rig->GetSystem();
     int nmeshes = 0;
-    std::vector<int> nassets;
+    std::vector<size_t> nassets;
     for (auto item : *sys->Get_otherphysicslist()) {
         if (std::dynamic_pointer_cast<fea::ChMesh>(item)) {
             nassets.push_back(item->GetAssets().size());

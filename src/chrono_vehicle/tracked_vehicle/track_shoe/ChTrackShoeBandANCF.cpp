@@ -81,7 +81,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     double dz_steel = 0.05 * 25.4 / 1000.0;
     double dz_rubber = (GetWebThickness() - dz_steel) / 2;
-    // dz_rubber = GetWebThickness();
 
     // Create an orthotropic material.
     // All layers for all elements share the same material.
@@ -166,7 +165,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     double dz_steel = 0.05 * 25.4 / 1000.0;
     double dz_rubber = (GetWebThickness() - dz_steel) / 2;
-    // dz_rubber = GetWebThickness();
 
     // Create an orthotropic material.
     // All layers for all elements share the same material.
@@ -263,136 +261,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
 #endif
-
-#if FALSE
-    if (GetIndex() == 0) {
-        //-------------------------------------------------------------------
-        // Problem Geometry
-        double web_angle = -30 * CH_C_DEG_TO_RAD;
-        double length = 24 * 25.4 / 1000;
-        double width = 12 * 25.4 / 1000;
-        double thickness = 1 * 25.4 / 1000;
-
-        int num_elements_length = 10;
-        int num_elements_width = 10;
-        int num_elements_thickness = 1;
-
-        int N_x = num_elements_length + 1;
-        int N_y = num_elements_width + 1;
-
-        double dx = length * std::cos(web_angle) / num_elements_length;
-        double dy = width / num_elements_width;
-        double dz = length * std::sin(web_angle) / num_elements_length;
-
-        // Number of elements in the z direction is considered as 1
-        int TotalNumElements = num_elements_length * num_elements_width;
-        int TotalNumNodes = N_x * N_y;
-
-        // Create a mesh, that is a container for groups of elements and their referenced nodes.
-        auto my_mesh = std::make_shared<ChMesh>();
-
-        // Create and add the nodes
-        for (int x_idx = 0; x_idx < N_x; x_idx++) {
-            for (int y_idx = 0; y_idx < N_y; y_idx++) {
-                // Node location
-                double loc_x = x_idx * dx;
-                double loc_y = y_idx * dy;
-                double loc_z = x_idx * dz;
-
-                // Node direction
-                double dir_x = std::cos(web_angle + CH_C_PI_2);
-                double dir_y = 0;
-                double dir_z = std::sin(web_angle + CH_C_PI_2);
-
-                // Create the node
-                auto node =
-                    std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
-
-                node->SetMass(0);
-
-                // Add node to mesh
-                my_mesh->AddNode(node);
-            }
-        }
-
-        // Create an orthotropic material.
-        // All layers for all elements share the same material.
-        double rho = 1.1e3;
-        ChVector<> E(0.1e9, 0.1e9, 0.1e9);
-        ChVector<> nu(0.49, 0.49, 0.49);
-        // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-        ChVector<> G = E / (2 * (1 + .49));
-        auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
-
-        // Create the elements
-        for (int x_idx = 0; x_idx < num_elements_length; x_idx++) {
-            for (int y_idx = 0; y_idx < num_elements_width; y_idx++) {
-                // Adjacent nodes
-                int node0 = y_idx + x_idx * N_y;
-                int node1 = y_idx + (x_idx + 1) * N_y;
-                int node2 = (y_idx + 1) + (x_idx + 1) * N_y;
-                int node3 = (y_idx + 1) + x_idx * N_y;
-
-                // Create the element and set its nodes.
-                auto element = std::make_shared<ChElementShellANCF>();
-                element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
-
-                // Set element dimensions
-                element->SetDimensions(std::sqrt(dx * dx + dz * dz), dy);
-
-                // Add a single layers with a fiber angle of 0 degrees.
-                element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
-
-                // Set other element properties
-                element->SetAlphaDamp(0.05);   // Structural damping for this element
-                element->SetGravityOn(false);  // turn internal gravitational force calculation off
-
-                // Add element to mesh
-                my_mesh->AddElement(element);
-            }
-        }
-
-        // Add the mesh to the system
-        chassis->GetSystem()->Add(my_mesh);
-
-        // -------------------------------------
-        // Options for visualization in irrlicht
-        // -------------------------------------
-
-        auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-        mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-        mvisualizemesh->SetShrinkElements(true, 0.85);
-        mvisualizemesh->SetSmoothFaces(true);
-        my_mesh->AddAsset(mvisualizemesh);
-
-        auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-        mvisualizemeshref->SetWireframe(true);
-        mvisualizemeshref->SetDrawInUndeformedReference(true);
-        my_mesh->AddAsset(mvisualizemeshref);
-
-        auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-        mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-        mvisualizemeshC->SetSymbolsThickness(0.004);
-        my_mesh->AddAsset(mvisualizemeshC);
-
-        auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-        // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-        mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-        mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-        mvisualizemeshD->SetSymbolsScale(1);
-        mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-        mvisualizemeshD->SetZbufferHide(false);
-        my_mesh->AddAsset(mvisualizemeshD);
-        //-------------------------------------------------------------------
-    }
-
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -425,7 +293,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     double dx = GetWebLength() / m_num_elements_length;
     double dy = GetBeltWidth() / m_num_elements_width;
-    double dz = GetWebThickness();
 
     // Move the nodes on the mesh to the correct location
     for (int x_idx = 0; x_idx < N_x; x_idx++) {

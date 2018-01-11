@@ -153,8 +153,10 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(rig, NULL, L"Continuous Band Track Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(-2.0, 0.0, 0.0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(-2.0, 3, 0));
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
+    app.SetChaseCameraPosition(target_point + ChVector<>(0.0, 3, 0));
+    app.SetChaseCameraState(utils::ChChaseCamera::Free);
+    app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -294,7 +296,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         rig->Advance(step_size);
 #ifdef USE_IRRLICHT
-        app.Advance(step_size);
+        app.Advance(1e-2);
 #endif
 
         // Increment frame number

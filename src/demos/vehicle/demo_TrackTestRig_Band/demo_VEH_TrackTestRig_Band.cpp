@@ -84,6 +84,59 @@ class MyDriver {
 
 // =============================================================================
 
+// Callback class for inspecting contacts
+class MyContactReporter : public ChContactContainer::ReportContactCallback {
+  public:
+    MyContactReporter(ChTrackTestRig* rig) : m_rig(rig) {}
+
+    void Process() {
+        std::cout << "Report contacts" << std::endl;
+        m_num_contacts = 0;
+        m_num_contacts_bb = 0;
+        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(this);
+        std::cout << "Total number contacts:        " << m_num_contacts << std::endl;
+        std::cout << "Number of body-body contacts: " << m_num_contacts_bb << std::endl;
+    }
+
+  private:
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& react_forces,
+                                 const ChVector<>& react_torques,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
+        m_num_contacts++;
+
+        auto bodyA = dynamic_cast<ChBody*>(modA);
+        auto bodyB = dynamic_cast<ChBody*>(modB);
+        auto vertexA = dynamic_cast<fea::ChContactNodeXYZsphere*>(modA);
+        auto vertexB = dynamic_cast<fea::ChContactNodeXYZsphere*>(modB);
+        auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
+        auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
+
+        if (bodyA && bodyB) {
+            std::cout << "  Body-Body:  " << bodyA->GetNameString() << "  " << bodyB->GetNameString() << std::endl;
+            m_num_contacts_bb++;
+            return true;
+        } else if (vertexA && vertexB) {
+            std::cout << "  Vertex-Vertex" << std::endl;
+        } else if (faceA && faceB) {
+            std::cout << "  Face-Face" << std::endl;
+        }
+
+        // Continue scanning contacts
+        return true;
+    }
+
+    int m_num_contacts;
+    int m_num_contacts_bb;
+    ChTrackTestRig* m_rig;
+};
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -188,6 +241,12 @@ int main(int argc, char* argv[]) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
+
+    // ---------------------------------------
+    // Contact reporter object (for debugging)
+    // ---------------------------------------
+
+    MyContactReporter reporter(rig);
 
     // ------------------------------
     // Solver and integrator settings
@@ -298,6 +357,9 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
         app.Advance(1e-2);
 #endif
+
+        // Parse all contacts in system
+        ////reporter.Process();
 
         // Increment frame number
         step_number++;
